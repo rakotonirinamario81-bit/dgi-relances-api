@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    mg.gov.fisc.relance: DEBUG
+    org.hibernate.SQL: DEBUG
+
+relance:
+  cors:
+    allowed-origins: http://localhost:*,http://127.0.0.1:*

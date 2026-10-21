@@ -1,0 +1,1 @@
+export { RecouvrementLineChart as RecouvrementChart } from '@/charts/RecouvrementLineChart';

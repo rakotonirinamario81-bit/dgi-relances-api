@@ -1,0 +1,1 @@
+Bonjour {nom}, votre paiement fiscal ({impot}, periode {periode}) d'un montant de {montant} est en retard de {jours_retard} jour(s) (echeance : {date}). Merci de regulariser votre situation aupres du service fiscal.

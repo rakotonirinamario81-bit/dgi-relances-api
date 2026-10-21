@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: relance-fiscale-api
+  profiles:
+    active: dev
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:relance_fiscale}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:postgres}}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # le schéma est géré exclusivement par Flyway
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  # Configuration de l'envoi d'Email (SMTP Gmail / Serveur DGI)
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+server:
+  port: ${PORT:8080}
+
+relance:
+  jwt:
+    secret: ${JWT_SECRET:changez-cette-cle-secrete-en-production-minimum-256-bits}
+    expiration-ms: 86400000 # 24h
+
+  frontend:
+    url: ${FRONTEND_URL:}
+
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://192.168.*:*,http://10.*:*,http://172.*:*,http://*:5173}
+
+  # Configuration de l'envoi de SMS (Brevo API)
+  sms:
+    api-url: ${SMS_API_URL:https://api.brevo.com/v3/transactionalSMS/send}
+    api-key: ${SMS_API_KEY:}
+    api-secret: ${SMS_API_SECRET:}
+    sender-id: ${SMS_SENDER_ID:DGIFISC}
+    timeout-ms: 15000  # 15s — passerelles africaines (Orange MG, Telma) ont des latences élevées
+
+  email:
+    expediteur: ${MAIL_EXPEDITEUR:Direction Générale des Impôts <rakotonirinamario81@gmail.com>}
+
+  journal:
+    retention-jours: 180
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    mg.gov.fisc.relance: INFO
+    org.springframework.security: WARN
