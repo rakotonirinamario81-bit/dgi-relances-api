@@ -1,4 +1,4 @@
-﻿package mg.gov.fisc.relance.report.pdf;
+package mg.gov.fisc.relance.report.pdf;
 
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;

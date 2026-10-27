@@ -1,4 +1,4 @@
-﻿package mg.gov.fisc.relance.notification;
+package mg.gov.fisc.relance.notification;
 
 import mg.gov.fisc.relance.entity.DetteFiscale;
 import mg.gov.fisc.relance.entity.EcheanceFiscale;
