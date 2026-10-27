@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { apiClient, extraireMessageErreur } from '@/services/apiClient';
+import { configurationService, CONFIG_DEFAUT } from '@/services/configurationService';
+import type { ConfigurationSystemeDTO } from '@/types/configuration.types';
 
 interface ParametreRelance {
   id: number;
@@ -12,26 +14,25 @@ interface ParametreRelance {
   description: string;
 }
 
-interface ConfigurationSysteme {
-  // SMS Brevo
+interface ConfigurationSysteme extends ConfigurationSystemeDTO {
   brevoApiKey: string;
   brevoSenderId: string;
   brevoSoldeSms: number;
   brevoStatut: string;
 
-  // Email SMTP
   smtpHost: string;
   smtpPort: number;
   smtpUser: string;
   smtpExpediteurNom: string;
   smtpStatut: string;
 
-  // Pénalités CGI
+  villeEmission: string;
+  serviceNom: string;
+
   tauxMajorationInitiale: number;
   tauxInteretMensuel: number;
   delaiGraceDefaut: number;
 
-  // Signatures
   nomSignataire: string;
   titreSignataire: string;
   mentionLegale: string;
@@ -90,24 +91,27 @@ export function ParametresPage() {
   ]);
 
   const [config, setConfig] = useState<ConfigurationSysteme>({
-    brevoApiKey: '',
-    brevoSenderId: 'DGIFISC',
-    brevoSoldeSms: 0,
+    brevoApiKey: CONFIG_DEFAUT.brevoApiKey ?? '',
+    brevoSenderId: CONFIG_DEFAUT.brevoSenderId ?? 'DGIFISC',
+    brevoSoldeSms: CONFIG_DEFAUT.brevoSoldeSms ?? 0,
     brevoStatut: 'REQUIS_CREDITS',
 
-    smtpHost: 'smtp-relay.brevo.com',
-    smtpPort: 587,
-    smtpUser: 'rakotonirinamario81@gmail.com',
-    smtpExpediteurNom: 'Direction Générale des Impôts - DGI',
+    smtpHost: CONFIG_DEFAUT.smtpHost ?? 'smtp-relay.brevo.com',
+    smtpPort: CONFIG_DEFAUT.smtpPort ?? 587,
+    smtpUser: CONFIG_DEFAUT.smtpUser ?? 'rakotonirinamario81@gmail.com',
+    smtpExpediteurNom: CONFIG_DEFAUT.smtpExpediteurNom ?? 'Direction Régionale des Impôts - Vatovavy Fitovinany',
     smtpStatut: 'ACTIF',
 
-    tauxMajorationInitiale: 10,
-    tauxInteretMensuel: 1.0,
-    delaiGraceDefaut: 8,
+    villeEmission: CONFIG_DEFAUT.villeEmission ?? 'Manakara',
+    serviceNom: CONFIG_DEFAUT.serviceNom ?? 'Direction Régionale des Impôts - Vatovavy Fitovinany',
 
-    nomSignataire: 'Germain',
-    titreSignataire: 'Directeur Général des Impôts par intérim',
-    mentionLegale: 'Conformément aux Articles 20.03.02 et 20.01.53 du Code Général des Impôts de Madagascar.',
+    tauxMajorationInitiale: CONFIG_DEFAUT.tauxMajorationInitiale ?? 10,
+    tauxInteretMensuel: CONFIG_DEFAUT.tauxInteretMensuel ?? 1.0,
+    delaiGraceDefaut: CONFIG_DEFAUT.delaiGraceDefaut ?? 8,
+
+    nomSignataire: CONFIG_DEFAUT.nomSignataire ?? 'Le Responsable du Recouvrement',
+    titreSignataire: CONFIG_DEFAUT.titreSignataire ?? 'Chef de Service Régional des Entreprises',
+    mentionLegale: CONFIG_DEFAUT.mentionLegale ?? 'Conformément aux Articles 20.03.02 et 20.01.53 du Code Général des Impôts de Madagascar.',
   });
 
   const [chargement, setChargement] = useState(false);
@@ -116,7 +120,7 @@ export function ParametresPage() {
   const [erreur, setErreur] = useState<string | null>(null);
 
   useEffect(() => {
-    // Tente d'alimenter les paramètres depuis le backend si le contrôleur existe
+    // 1. Charger les seuils de relance
     apiClient
       .get<ParametreRelance[]>('/parametres-relance')
       .then((res) => {
@@ -125,9 +129,26 @@ export function ParametresPage() {
         }
       })
       .catch(() => {
-        // Mode autonome avec valeurs d'administration DGI
+        // Mode autonome
       })
       .finally(() => setChargement(false));
+
+    // 2. Charger la configuration système persistante
+    configurationService
+      .getConfiguration()
+      .then((data) => {
+        if (data) {
+          setConfig((prev) => ({
+            ...prev,
+            ...data,
+            smtpExpediteurNom: data.smtpExpediteurNom || 'Direction Régionale des Impôts - Vatovavy Fitovinany',
+            villeEmission: data.villeEmission || 'Manakara',
+          }));
+        }
+      })
+      .catch((e) => {
+        console.warn('Impossible de charger la configuration système:', e);
+      });
   }, []);
 
   function modifierSeuilLocal(id: number, seuilJours: number) {
@@ -143,7 +164,6 @@ export function ParametresPage() {
     setErreur(null);
     setSucces(null);
     try {
-      // Sauvegarde globale ou individuelle
       await Promise.all(
         parametres.map((p) => apiClient.put(`/parametres-relance/${p.id}`, p).catch(() => null))
       );
@@ -155,13 +175,20 @@ export function ParametresPage() {
     }
   }
 
-  async function enregistrerConfigurationSysteme() {
+  async function enregistrerConfigurationSysteme(section = 'SMTP') {
     setEnregistrementEnCours(true);
     setErreur(null);
     setSucces(null);
     try {
-      // Simule/sauvegarde la config système
-      setSucces('Configuration des passerelles et règles CGI mise à jour.');
+      const saved = await configurationService.sauvegarderConfiguration(config);
+      setConfig((prev) => ({ ...prev, ...saved }));
+      if (section === 'SMTP') {
+        setSucces(
+          `✓ Paramètres SMTP validés avec succès ! L'expéditeur officiel est désormais « ${config.smtpExpediteurNom} » et tous les envois pour motif d'impayé sont rédigés avec ce libellé depuis ${config.villeEmission || 'Manakara'}.`
+        );
+      } else {
+        setSucces('✓ Configuration système mise à jour et persistée avec succès.');
+      }
     } catch (err) {
       setErreur(extraireMessageErreur(err));
     } finally {
@@ -404,7 +431,7 @@ export function ParametresPage() {
             </div>
 
             <Button
-              onClick={enregistrerConfigurationSysteme}
+              onClick={() => void enregistrerConfigurationSysteme('SMS')}
               enCours={enregistrementEnCours}
               className="bg-fiscal-bordeaux hover:bg-fiscal-bordeauxFonce text-white text-xs font-bold px-4 py-2"
             >
@@ -459,7 +486,7 @@ export function ParametresPage() {
             </div>
 
             <Button
-              onClick={enregistrerConfigurationSysteme}
+              onClick={() => void enregistrerConfigurationSysteme('SMTP')}
               enCours={enregistrementEnCours}
               className="bg-fiscal-bordeaux hover:bg-fiscal-bordeauxFonce text-white text-xs font-bold px-4 py-2"
             >
@@ -506,6 +533,18 @@ export function ParametresPage() {
                 onChange={(e) => setConfig({ ...config, smtpExpediteurNom: e.target.value })}
                 className="w-full rounded-xl border border-gray-300 font-sans font-bold px-3 py-2 text-xs focus:border-fiscal-bordeaux focus:outline-none"
               />
+              <p className="text-[10px] text-gray-400 mt-1">Exemple : Direction Régionale des Impôts - Vatovavy Fitovinany</p>
+            </div>
+
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Ville d'Émission Officielle :</label>
+              <input
+                type="text"
+                value={config.villeEmission}
+                onChange={(e) => setConfig({ ...config, villeEmission: e.target.value })}
+                className="w-full rounded-xl border border-gray-300 font-sans font-bold px-3 py-2 text-xs focus:border-fiscal-bordeaux focus:outline-none"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Ville figurant sur les avis et courriers officiels (par défaut : Manakara).</p>
             </div>
           </div>
 
@@ -526,7 +565,7 @@ export function ParametresPage() {
             </div>
 
             <Button
-              onClick={enregistrerConfigurationSysteme}
+              onClick={() => void enregistrerConfigurationSysteme('CGI')}
               enCours={enregistrementEnCours}
               className="bg-fiscal-bordeaux hover:bg-fiscal-bordeauxFonce text-white text-xs font-bold px-4 py-2"
             >
@@ -583,7 +622,7 @@ export function ParametresPage() {
             </div>
 
             <Button
-              onClick={enregistrerConfigurationSysteme}
+              onClick={() => void enregistrerConfigurationSysteme('SIGNATURES')}
               enCours={enregistrementEnCours}
               className="bg-fiscal-bordeaux hover:bg-fiscal-bordeauxFonce text-white text-xs font-bold px-4 py-2"
             >

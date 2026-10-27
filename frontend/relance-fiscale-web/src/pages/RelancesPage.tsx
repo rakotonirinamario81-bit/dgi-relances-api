@@ -5,6 +5,7 @@ import { RelanceTimeline } from '@/components/metier/RelanceTimeline';
 import { useRelances } from '@/hooks/useRelances';
 import { relanceService } from '@/services/relanceService';
 import { detteFiscaleService } from '@/services/detteFiscaleService';
+import { configurationService } from '@/services/configurationService';
 import { extraireMessageErreur } from '@/services/apiClient';
 import type { DetteFiscale } from '@/types/detteFiscale.types';
 import type { CanalNotification, RelanceApercu } from '@/types/relance.types';
@@ -39,6 +40,21 @@ export function RelancesPage() {
   // Configuration de l'envoi
   const [canalChoisi, setCanalChoisi] = useState<CanalNotification>('SMS_ET_EMAIL');
   const [ongletApercu, setOngletApercu] = useState<'SMS' | 'EMAIL'>('SMS');
+
+  // Libellé de l'Expéditeur officiel et ville d'émission dynamiques
+  const [libelleExpediteur, setLibelleExpediteur] = useState<string>(() =>
+    configurationService.getLibelleExpediteurActuel()
+  );
+  const [villeEmission, setVilleEmission] = useState<string>(() =>
+    configurationService.getVilleEmissionActuelle()
+  );
+
+  useEffect(() => {
+    configurationService.getConfiguration().then((cfg) => {
+      if (cfg.smtpExpediteurNom) setLibelleExpediteur(cfg.smtpExpediteurNom);
+      if (cfg.villeEmission) setVilleEmission(cfg.villeEmission);
+    }).catch(() => {});
+  }, []);
 
   // Aperçu dynamique et édition
   const [apercu, setApercu] = useState<RelanceApercu | null>(null);
@@ -804,14 +820,16 @@ export function RelancesPage() {
 
                               {/* En-tête de message SMS */}
                               <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-fiscal-bordeaux text-white flex items-center justify-center text-xs font-bold">
-                                  DGI
+                                <div className="h-8 w-8 rounded-full bg-fiscal-bordeaux text-white flex items-center justify-center text-[10px] font-black">
+                                  DRI
                                 </div>
-                                <div className="flex-1">
-                                  <div className="text-xs font-bold text-gray-900 leading-tight">DGI MADAGASCAR</div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs font-bold text-gray-900 leading-tight truncate">
+                                    {libelleExpediteur.toUpperCase()}
+                                  </div>
                                   <div className="text-[10px] text-emerald-600 flex items-center gap-1">
                                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span>Émetteur Officiel Certifié</span>
+                                    <span>Émetteur Officiel Certifié · {villeEmission}</span>
                                   </div>
                                 </div>
                               </div>
@@ -904,13 +922,13 @@ export function RelancesPage() {
                                 MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES
                               </div>
                               <div className="font-extrabold text-gray-900 text-xs">
-                                DIRECTION GÉNÉRALE DES IMPÔTS
+                                {libelleExpediteur.toUpperCase()}
                               </div>
                             </div>
 
                             <div className="text-right sm:text-right text-[11px] text-gray-600 font-mono space-y-0.5">
                               <div>Réf : REL-DGI-{detteSelectionnee?.id}-2026</div>
-                              <div>Antananarivo, le {new Date().toLocaleDateString('fr-FR')}</div>
+                              <div>{villeEmission}, le {new Date().toLocaleDateString('fr-FR')}</div>
                               <div className="text-fiscal-bordeaux font-bold">AVIS DE MISE EN RECOUVREMENT</div>
                             </div>
                           </div>

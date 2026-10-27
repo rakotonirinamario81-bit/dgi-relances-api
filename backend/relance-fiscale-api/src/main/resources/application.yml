@@ -61,7 +61,7 @@ relance:
     timeout-ms: 15000  # 15s — passerelles africaines (Orange MG, Telma) ont des latences élevées
 
   email:
-    expediteur: ${MAIL_EXPEDITEUR:Direction Générale des Impôts <rakotonirinamario81@gmail.com>}
+    expediteur: ${MAIL_EXPEDITEUR:Direction Régionale des Impôts - Vatovavy Fitovinany <rakotonirinamario81@gmail.com>}
 
   journal:
     retention-jours: 180

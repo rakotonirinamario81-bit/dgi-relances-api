@@ -3,6 +3,8 @@ package mg.gov.fisc.relance.notification;
 import mg.gov.fisc.relance.entity.DetteFiscale;
 import mg.gov.fisc.relance.entity.EcheanceFiscale;
 import mg.gov.fisc.relance.entity.Paiement;
+import mg.gov.fisc.relance.service.ConfigurationSystemeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,6 +22,24 @@ import java.util.Locale;
 public class RelanceMessageGenerateur {
 
     private static final DateTimeFormatter DATE_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private final ConfigurationSystemeService configurationSystemeService;
+
+    public RelanceMessageGenerateur(@Autowired(required = false) ConfigurationSystemeService configurationSystemeService) {
+        this.configurationSystemeService = configurationSystemeService;
+    }
+
+    private String getNomExpediteurActif() {
+        return (configurationSystemeService != null)
+                ? configurationSystemeService.getNomExpediteur()
+                : "Direction Régionale des Impôts - Vatovavy Fitovinany";
+    }
+
+    private String getVilleEmissionActive() {
+        return (configurationSystemeService != null)
+                ? configurationSystemeService.getVilleEmission()
+                : "Manakara";
+    }
 
     /**
      * Génère un message SMS concis et court (&lt;= 160 caractères GSM standard)
@@ -45,7 +65,8 @@ public class RelanceMessageGenerateur {
         String codeImpot = dette.getImpot() != null ? dette.getImpot().getCode() : "IMPÔT";
         String periode = dette.getPeriodeFiscale() != null ? dette.getPeriodeFiscale() : "";
         String nif = dette.getContribuable() != null ? dette.getContribuable().getNif() : "";
-        return String.format("[DGI MADAGASCAR] Avis de relance : Solde impayé %s (%s) - NIF %s", codeImpot, periode, nif);
+        return String.format("[%s] Avis de relance : Solde impayé %s (%s) - NIF %s",
+                getNomExpediteurActif().toUpperCase(), codeImpot, periode, nif);
     }
 
     /**
@@ -68,16 +89,19 @@ public class RelanceMessageGenerateur {
         String montantPaye = formaterMontant(dette.getMontantPaye());
         String soldeRestant = formaterMontant(dette.getSoldeRestant());
 
+        String serviceNom = getNomExpediteurActif();
+        String ville = getVilleEmissionActive();
+
         return """
                 RÉPUBLIQUE DE MADAGASCAR
                 Tanindrazana - Fahafahana - Fandrosoana
                 MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES
-                DIRECTION GÉNÉRALE DES IMPÔTS (DGI)
+                %s
                 Centre Fiscal : %s
                 ----------------------------------------------------------------------
                 AVIS DE RELANCE POUR RECOUVREMENT DE CRÉANCE FISCALE
                 Référence dossier : DETTE-#%d
-                Date d'émission   : %s
+                Date d'émission   : %s (%s)
                 ----------------------------------------------------------------------
 
                 À l'attention de : %s
@@ -108,7 +132,7 @@ public class RelanceMessageGenerateur {
                 MODALITÉS DE RÈGLEMENT :
                 1. En ligne par télépaiement via le portail officiel e-Hetra (https://e-hetra.mg)
                 2. Par virement bancaire sur le compte du Trésor Public (en mentionnant votre NIF et la référence DETTE-#%d)
-                3. Directement au guichet de la recette fiscale de votre centre gestionnaire.
+                3. Directement au guichet de la recette fiscale de votre centre gestionnaire (%s).
 
                 Si votre versement a été effectué avant la réception de ce présent message,
                 veuillez considérer cette notification comme nulle et non avenue et nous transmettre
@@ -118,11 +142,13 @@ public class RelanceMessageGenerateur {
                 à contacter votre centre des impôts.
 
                 Le Receveur des Impôts
-                Direction Générale des Impôts
+                %s
                 """.formatted(
+                serviceNom.toUpperCase(),
                 commune,
                 dette.getId(),
                 java.time.LocalDate.now().format(DATE_FR),
+                ville,
                 nom,
                 nif,
                 impotLibelle,
@@ -133,7 +159,9 @@ public class RelanceMessageGenerateur {
                 montantDu,
                 montantPaye,
                 soldeRestant,
-                dette.getId()
+                dette.getId(),
+                ville,
+                serviceNom
         );
     }
 

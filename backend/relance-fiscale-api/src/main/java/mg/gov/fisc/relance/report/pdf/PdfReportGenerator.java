@@ -19,6 +19,8 @@ import mg.gov.fisc.relance.entity.EcheanceMoratoire;
 import mg.gov.fisc.relance.entity.Moratoire;
 import mg.gov.fisc.relance.entity.Paiement;
 import mg.gov.fisc.relance.entity.Relance;
+import mg.gov.fisc.relance.service.ConfigurationSystemeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,9 @@ public class PdfReportGenerator {
 
     private static final DateTimeFormatter DATE_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final String NOM_SERVICE_FISCAL = "SERVICE FISCAL - RECOUVREMENT DES TAXES LOCALES";
+
+    @Autowired(required = false)
+    private ConfigurationSystemeService configurationSystemeService;
 
     @Value("${relance.frontend.url:}")
     private String configuredFrontendUrl;
@@ -89,13 +94,20 @@ public class PdfReportGenerator {
 
             Contribuable contribuable = dette.getContribuable();
 
-            document.add(new Paragraph(NOM_SERVICE_FISCAL)
-                    .setBold().setFontSize(14).setTextAlignment(TextAlignment.CENTER));
-            document.add(new Paragraph("AVIS DE RELANCE FISCALE OFFICIEL")
-                    .setBold().setFontSize(12).setTextAlignment(TextAlignment.CENTER)
-                    .setMarginBottom(20));
+            String serviceNom = (configurationSystemeService != null)
+                    ? configurationSystemeService.getNomExpediteur()
+                    : "Direction Régionale des Impôts - Vatovavy Fitovinany";
+            String ville = (configurationSystemeService != null)
+                    ? configurationSystemeService.getVilleEmission()
+                    : "Manakara";
 
-            document.add(new Paragraph("Date d'émission : " + java.time.LocalDate.now().format(DATE_FR)));
+            document.add(new Paragraph("RÉPUBLIQUE DE MADAGASCAR\nMINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\n" + serviceNom.toUpperCase())
+                    .setBold().setFontSize(11).setTextAlignment(TextAlignment.CENTER));
+            document.add(new Paragraph("AVIS DE RELANCE FISCALE OFFICIEL (RECOUVREMENT)")
+                    .setBold().setFontSize(13).setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(15));
+
+            document.add(new Paragraph(ville + ", le " + java.time.LocalDate.now().format(DATE_FR)));
             document.add(new Paragraph("Référence dossier n° : " + dette.getId()).setMarginBottom(15));
 
             document.add(new Paragraph("Informations du contribuable").setBold().setFontSize(11));
