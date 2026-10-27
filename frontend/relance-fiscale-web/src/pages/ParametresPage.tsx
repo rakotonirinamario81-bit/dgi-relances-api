@@ -39,7 +39,7 @@ interface ConfigurationSysteme extends ConfigurationSystemeDTO {
 }
 
 export function ParametresPage() {
-  const [ongletActif, setOngletActif] = useState<'seuils' | 'sms' | 'email' | 'cgi' | 'signatures'>('seuils');
+  const [ongletActif, setOngletActif] = useState<'seuils' | 'email' | 'cgi' | 'signatures'>('seuils');
   
   // États des paramètres
   const [parametres, setParametres] = useState<ParametreRelance[]>([
@@ -220,7 +220,7 @@ export function ParametresPage() {
               <span>🛠️</span> Paramètres & Règles de Relance
             </h1>
             <p className="text-xs sm:text-sm text-red-100 max-w-2xl font-light leading-relaxed">
-              Configuration des seuils temporels de relance, gestion des passerelles SMS Brevo / SMTP Email, taux de pénalités CGI et signatures officielles DGI.
+              Configuration des seuils temporels de relance, passerelle Courrier Électronique (SMTP), taux de pénalités CGI et signatures officielles DGI.
             </p>
           </div>
 
@@ -257,23 +257,17 @@ export function ParametresPage() {
       )}
 
       {/* 2. Cartes Synthétiques de Configuration */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Niveaux de Relance</div>
           <div className="mt-2 text-2xl font-black text-gray-900 font-mono">{parametres.length} Seuils</div>
           <div className="mt-1 text-[11px] text-emerald-700 font-medium">⚡ Règles d'automatisation actives</div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4 shadow-xs">
-          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Canal SMS</div>
-          <div className="mt-2 text-2xl font-black text-gray-700 font-mono">Désactivé</div>
-          <div className="mt-1 text-[11px] text-gray-500 font-medium">Courrier Email 100% actif</div>
-        </div>
-
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-xs">
           <div className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider">Passerelle SMTP Email</div>
           <div className="mt-2 text-2xl font-black text-emerald-950 font-mono">✓ Connecté</div>
-          <div className="mt-1 text-[11px] text-emerald-700 font-medium">Gmail SMTP Relay : Port 587</div>
+          <div className="mt-1 text-[11px] text-emerald-700 font-medium">Canal unique officiel : Port 587</div>
         </div>
 
         <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 shadow-xs">
@@ -295,18 +289,6 @@ export function ParametresPage() {
           }`}
         >
           <span>⚡ Seuils de Relance Automatique</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setOngletActif('sms')}
-          className={`px-4 py-3 border-b-2 flex items-center gap-2 transition-all ${
-            ongletActif === 'sms'
-              ? 'border-fiscal-bordeaux text-fiscal-bordeaux font-bold bg-white'
-              : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <span>📲 Canal SMS (Désactivé)</span>
         </button>
 
         <button
@@ -421,62 +403,7 @@ export function ParametresPage() {
         </div>
       )}
 
-      {/* 5. CONTENU ONGLET 2 : PASSERELLE SMS BREVO */}
-      {ongletActif === 'sms' && (
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <div>
-              <h3 className="text-base font-extrabold text-gray-900">Configuration Passerelle SMS Brevo</h3>
-              <p className="text-xs text-gray-500">Paramètres de connexion à l'API HTTP Transactionnelle Brevo.</p>
-            </div>
-
-            <Button
-              onClick={() => void enregistrerConfigurationSysteme('SMS')}
-              enCours={enregistrementEnCours}
-              className="bg-fiscal-bordeaux hover:bg-fiscal-bordeauxFonce text-white text-xs font-bold px-4 py-2"
-            >
-              💾 Sauvegarder la clé API
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-bold text-gray-700 mb-1">Clé d’API Brevo (v3 API Key) :</label>
-              <input
-                type="password"
-                value={config.brevoApiKey}
-                onChange={(e) => setConfig({ ...config, brevoApiKey: e.target.value })}
-                className="w-full rounded-xl border border-gray-300 font-mono px-3 py-2 text-xs focus:border-fiscal-bordeaux focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-gray-700 mb-1">Identifiant d’Expéditeur (Sender ID) :</label>
-              <input
-                type="text"
-                value={config.brevoSenderId}
-                onChange={(e) => setConfig({ ...config, brevoSenderId: e.target.value })}
-                className="w-full rounded-xl border border-gray-300 font-mono font-bold px-3 py-2 text-xs focus:border-fiscal-bordeaux focus:outline-none"
-              />
-              <p className="text-[10px] text-gray-400 mt-1">Exemple : DGIFISC (Max 11 caractères alfanumériques).</p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950 space-y-2">
-            <div className="font-extrabold text-amber-950 flex items-center gap-2 text-sm">
-              <span>⚠️</span> Statut des Crédits Transactionnels SMS Brevo
-            </div>
-            <p className="leading-relaxed text-xs">
-              Le compte Brevo configuré dispose de 300 envois emails/jour gratuits, mais le solde des **SMS transactionnels pour Madagascar (+261)** est actuellement de <strong>0 crédit</strong>.
-            </p>
-            <p className="leading-relaxed text-xs text-amber-900">
-              Pour que les SMS soient distribués sur les réseaux Telma, Orange et Airtel, veuillez recharger votre compte sur <a href="https://app.brevo.com" target="_blank" rel="noopener noreferrer" className="underline font-bold text-amber-950">app.brevo.com</a> (Achat de crédits SMS transactionnels).
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 6. CONTENU ONGLET 3 : PASSERELLE EMAIL SMTP */}
+      {/* 5. CONTENU ONGLET 2 : PASSERELLE EMAIL SMTP */}
       {ongletActif === 'email' && (
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
