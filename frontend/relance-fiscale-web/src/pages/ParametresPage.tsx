@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { apiClient, extraireMessageErreur } from '@/services/apiClient';
 import { configurationService, CONFIG_DEFAUT } from '@/services/configurationService';
@@ -48,27 +48,27 @@ export function ParametresPage() {
       niveauRelance: 'PREVENTIF',
       libelle: 'Rappel Préventif Avant Échéance',
       seuilJours: 0,
-      canalParDefaut: 'SMS',
+      canalParDefaut: 'EMAIL',
       actif: true,
-      description: 'Notification courtoise envoyée le jour même de l’échéance pour inciter au versement spontané.',
+      description: 'Notification courtoise par email le jour même de l’échéance pour inciter au versement spontané.',
     },
     {
       id: 2,
       niveauRelance: 'AMIABLE',
-      libelle: 'Relance Amiable (SMS)',
+      libelle: 'Relance Amiable (Email)',
       seuilJours: 8,
-      canalParDefaut: 'SMS',
+      canalParDefaut: 'EMAIL',
       actif: true,
-      description: 'SMS court envoyé 8 jours après l’échéance pour rappeler le délai de grâce légal.',
+      description: 'Courrier électronique envoyé 8 jours après l’échéance pour rappeler le délai de grâce légal.',
     },
     {
       id: 3,
       niveauRelance: 'INTERMEDIAIRE',
-      libelle: 'Relance Intermédiaire Multicanal',
+      libelle: 'Relance Intermédiaire Sommation',
       seuilJours: 15,
-      canalParDefaut: 'SMS_ET_EMAIL',
+      canalParDefaut: 'EMAIL',
       actif: true,
-      description: 'Avis formel combinant SMS et Courrier Électronique avec décompte des premières pénalités.',
+      description: 'Avis formel par Courrier Électronique avec décompte des premières pénalités de retard.',
     },
     {
       id: 4,
@@ -264,10 +264,10 @@ export function ParametresPage() {
           <div className="mt-1 text-[11px] text-emerald-700 font-medium">⚡ Règles d'automatisation actives</div>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 shadow-xs">
-          <div className="text-[11px] font-bold text-amber-900 uppercase tracking-wider">Passerelle SMS Brevo</div>
-          <div className="mt-2 text-2xl font-black text-amber-950 font-mono">⚠️ 0 Crédit</div>
-          <div className="mt-1 text-[11px] text-amber-800 font-medium">Requiert solde transactionnel</div>
+        <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4 shadow-xs">
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Canal SMS</div>
+          <div className="mt-2 text-2xl font-black text-gray-700 font-mono">Désactivé</div>
+          <div className="mt-1 text-[11px] text-gray-500 font-medium">Courrier Email 100% actif</div>
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-xs">
@@ -303,10 +303,10 @@ export function ParametresPage() {
           className={`px-4 py-3 border-b-2 flex items-center gap-2 transition-all ${
             ongletActif === 'sms'
               ? 'border-fiscal-bordeaux text-fiscal-bordeaux font-bold bg-white'
-              : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-50'
           }`}
         >
-          <span>📲 Passerelle SMS (Brevo API)</span>
+          <span>📲 Canal SMS (Désactivé)</span>
         </button>
 
         <button

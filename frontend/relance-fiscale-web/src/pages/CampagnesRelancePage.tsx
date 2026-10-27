@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CampagneForm } from '@/components/metier/CampagneForm';
@@ -201,7 +201,7 @@ export function CampagnesRelancePage() {
             <span className="text-xs text-gray-500 font-medium">avis délivrés</span>
           </div>
           <div className="mt-2 text-[11px] text-emerald-700 font-semibold">
-            Canaux combinés SMS & Email
+            Courrier Électronique Officiel
           </div>
         </div>
 

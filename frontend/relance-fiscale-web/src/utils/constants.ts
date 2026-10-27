@@ -9,8 +9,8 @@ export const LIBELLES_STATUT_DETTE: Record<string, string> = {
 
 export const LIBELLES_NIVEAU_RELANCE: Record<string, string> = {
   NIVEAU_0_PREVENTIF: 'Préventif',
-  NIVEAU_1_AMIABLE: 'Amiable (SMS)',
-  NIVEAU_2_INTERMEDIAIRE: 'Intermédiaire (SMS + Email)',
+  NIVEAU_1_AMIABLE: 'Amiable (Email)',
+  NIVEAU_2_INTERMEDIAIRE: 'Intermédiaire (Email)',
   NIVEAU_3_OFFICIEL: 'Officiel (avis PDF)',
   NIVEAU_4_FORCE: 'Recouvrement forcé',
 };

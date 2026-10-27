@@ -44,7 +44,7 @@ export function EcheancesFiscalesPage() {
 
   // Modal Relance
   const [echeanceARelancer, setEcheanceARelancer] = useState<EcheanceFiscale | null>(null);
-  const [canalRelance, setCanalRelance] = useState<'SMS' | 'EMAIL' | 'SMS_ET_EMAIL'>('SMS_ET_EMAIL');
+  const [canalRelance] = useState<'EMAIL'>('EMAIL');
   const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
   const [relanceEnCours, setRelanceEnCours] = useState(false);
   const [messageSuccesRelance, setMessageSuccesRelance] = useState<string | null>(null);
@@ -170,7 +170,6 @@ export function EcheancesFiscalesPage() {
 
   function ouvrirModalRelance(e: EcheanceFiscale) {
     setEcheanceARelancer(e);
-    setCanalRelance('SMS_ET_EMAIL');
     setMessageSuccesRelance(null);
     setMessagePersonnalise(
       `L'examen du dossier fiscal de votre entreprise nous a permis de constater que vous n'avez pas encore déposé votre déclaration d'impôt notamment sur l'${e.impotLibelle} (${e.impotCode}) période de ${e.periode} et ceci malgré le temps qui s'est écoulé depuis l'échéance de dépôt légalement prévue par le Code Général des Impôts (échéance : ${formaterDateFr(e.dateLimite)}).`
@@ -937,62 +936,42 @@ export function EcheancesFiscalesPage() {
               </div>
             </div>
 
-            {/* Choix du canal */}
+            {/* Canal d’expédition - Email uniquement */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
                 Canal d’expédition
               </label>
-              <select
-                value={canalRelance}
-                onChange={(e) => setCanalRelance(e.target.value as 'SMS' | 'EMAIL' | 'SMS_ET_EMAIL')}
-                className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm focus:border-fiscal-bordeaux focus:outline-none focus:ring-2 focus:ring-fiscal-bordeaux/20"
-              >
-                <option value="EMAIL">Email uniquement (Recommandé — 100% opérationnel avec PDF DGI)</option>
-                <option value="SMS_ET_EMAIL">SMS + Email (Email fonctionnel, SMS ⚠️ crédits requis)</option>
-                <option value="SMS">SMS uniquement (⚠️ Crédits Brevo requis — distribution non garantie)</option>
-              </select>
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 text-xs text-emerald-950">
+                <span className="text-xl shrink-0">📧</span>
+                <div>
+                  <div className="font-bold flex items-center gap-2">
+                    Courrier Électronique (Email)
+                    <span className="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.5 rounded">
+                      ✓ Canal unique · 100% Opérationnel
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-emerald-800 mt-0.5">
+                    Transmission officielle par email avec pièce jointe PDF certifiée DGI.
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Aperçu format SMS avec avertissement crédits */}
-            {(canalRelance === 'SMS' || canalRelance === 'SMS_ET_EMAIL') && (
-              <div className="space-y-2">
-                <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-3 text-xs text-amber-950">
-                  <div className="font-bold flex items-center gap-1.5 text-amber-950">
-                    <span>⚠️</span> Distribution SMS non garantie
-                  </div>
-                  <p className="mt-1 text-[11px] text-amber-900 leading-relaxed">
-                    Le compte Brevo actuel ne possède pas de crédits SMS transactionnels. Les SMS sont acceptés par l'API mais <strong>rejetés par les opérateurs téléphoniques Madagascar</strong>. Privilégiez le canal <strong>Email</strong> pour garantir la délivrance au contribuable.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs">
-                  <span className="font-bold text-blue-900 block mb-1">📱 Aperçu du SMS envoyé (GSM 160 car.) :</span>
-                  <p className="text-blue-800 font-mono text-[11px] leading-relaxed">
-                    Service Fiscal : Rappel - Vous n’avez pas encore déposé votre déclaration d’impôt{' '}
-                    {echeanceARelancer.impotLibelle} ({echeanceARelancer.impotCode}) pour {echeanceARelancer.periode} échue le{' '}
-                    {formaterDateFr(echeanceARelancer.dateLimite)}. Merci de régulariser sous 8 jours.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* Texte de la lettre PDF */}
-            {(canalRelance === 'EMAIL' || canalRelance === 'SMS_ET_EMAIL') && (
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                  Corps de la lettre officielle (DGI Madagascar)
-                </label>
-                <textarea
-                  rows={4}
-                  value={messagePersonnalise}
-                  onChange={(e) => setMessagePersonnalise(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white p-3 text-xs font-sans focus:border-fiscal-bordeaux focus:outline-none focus:ring-2 focus:ring-fiscal-bordeaux/20"
-                />
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Mentions incluses automatiquement dans le PDF : Référence officielle DGI, articles 20.03.02 et 20.01.53, mise en demeure sous 8 jours.
-                </p>
-              </div>
-            )}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
+                Corps de la lettre officielle (DGI Madagascar)
+              </label>
+              <textarea
+                rows={4}
+                value={messagePersonnalise}
+                onChange={(e) => setMessagePersonnalise(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 bg-white p-3 text-xs font-sans focus:border-fiscal-bordeaux focus:outline-none focus:ring-2 focus:ring-fiscal-bordeaux/20"
+              />
+              <p className="text-[11px] text-gray-500 mt-1">
+                Mentions incluses automatiquement dans le PDF : Référence officielle DGI, articles 20.03.02 et 20.01.53, mise en demeure sous 8 jours.
+              </p>
+            </div>
 
             {messageSuccesRelance && (
               <div className="rounded-xl bg-emerald-50 p-3.5 text-xs text-emerald-800 border border-emerald-200 font-semibold flex items-center gap-2">

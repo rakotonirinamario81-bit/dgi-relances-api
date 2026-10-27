@@ -108,7 +108,7 @@ public class RelanceServiceImpl implements RelanceService {
     @Override
     public Relance envoyerRelanceManuelle(Long detteFiscaleId, Long modeleMessageId, Long agentId) {
         if (modeleMessageId == null) {
-            return envoyerRelanceAutomatique(detteFiscaleId, CanalNotification.SMS_ET_EMAIL, null, null, null, agentId);
+            return envoyerRelanceAutomatique(detteFiscaleId, CanalNotification.EMAIL, null, null, null, agentId);
         }
 
         DetteFiscale dette = detteFiscaleRepository.findByIdWithRelations(detteFiscaleId)
@@ -116,13 +116,13 @@ public class RelanceServiceImpl implements RelanceService {
 
         Optional<ModeleMessage> modeleOpt = modeleMessageRepository.findById(modeleMessageId);
         if (modeleOpt.isEmpty()) {
-            return envoyerRelanceAutomatique(detteFiscaleId, CanalNotification.SMS_ET_EMAIL, null, null, null, agentId);
+            return envoyerRelanceAutomatique(detteFiscaleId, CanalNotification.EMAIL, null, null, null, agentId);
         }
 
         ModeleMessage modele = modeleOpt.get();
         Utilisateur agent = (agentId != null) ? utilisateurRepository.findById(agentId).orElse(null) : null;
         NiveauRelance niveau = dette.getNiveauRelanceCourant() != null ? dette.getNiveauRelanceCourant() : NiveauRelance.NIVEAU_1_AMIABLE;
-        Relance relance = construireEtEnvoyer(dette, modele, modele.getCanal(), niveau, null, agent);
+        Relance relance = construireEtEnvoyer(dette, modele, CanalNotification.EMAIL, niveau, null, agent);
 
         dette.setNombreRelancesEnvoyees(dette.getNombreRelancesEnvoyees() + 1);
         detteFiscaleRepository.save(dette);
@@ -140,7 +140,7 @@ public class RelanceServiceImpl implements RelanceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Dette fiscale introuvable : id=" + detteFiscaleId));
         Utilisateur agent = (agentId != null) ? utilisateurRepository.findById(agentId).orElse(null) : null;
 
-        CanalNotification canalChoisi = (canal != null) ? canal : CanalNotification.SMS_ET_EMAIL;
+        CanalNotification canalChoisi = CanalNotification.EMAIL;
         NiveauRelance niveauCalcul = (dette.getNiveauRelanceCourant() != null)
                 ? dette.getNiveauRelanceCourant()
                 : determinerNiveauCible(dette);
@@ -159,22 +159,13 @@ public class RelanceServiceImpl implements RelanceService {
         relance.setAgent(agent);
         relance.setDatePlanifiee(LocalDateTime.now());
 
-        String contenuFinal;
-        if (canalChoisi == CanalNotification.SMS) {
-            contenuFinal = (messageSms != null && !messageSms.isBlank())
-                    ? messageSms
-                    : relanceMessageGenerateur.genererMessageSms(dette);
-        } else {
-            contenuFinal = (messageEmail != null && !messageEmail.isBlank())
-                    ? messageEmail
-                    : relanceMessageGenerateur.genererCorpsEmail(dette);
-        }
+        String contenuFinal = (messageEmail != null && !messageEmail.isBlank())
+                ? messageEmail
+                : relanceMessageGenerateur.genererCorpsEmail(dette);
         relance.setContenuFinal(contenuFinal);
 
-        // Joindre l'avis officiel PDF pour toute relance par Email ou de Niveau 3
-        if (canalChoisi == CanalNotification.EMAIL || canalChoisi == CanalNotification.SMS_ET_EMAIL || niveau == NiveauRelance.NIVEAU_3_OFFICIEL) {
-            relance.setDocumentPdfGenere(true);
-        }
+        // Joindre systématiquement l'avis officiel PDF pour toute relance par Courrier Électronique
+        relance.setDocumentPdfGenere(true);
 
         relanceRepository.save(relance);
         notificationDispatchService.envoyer(relance);
@@ -230,27 +221,28 @@ public class RelanceServiceImpl implements RelanceService {
         }
 
         ModeleMessage modele = modeleMessageRepository.findAll().stream()
-                .filter(m -> m.getNom().contains("NON_DEPOT") && m.getCanal() == CanalNotification.SMS && m.isActif())
+                .filter(m -> m.getNom().contains("NON_DEPOT") && m.getCanal() == CanalNotification.EMAIL && m.isActif())
                 .findFirst()
                 .orElse(null);
 
         Relance relance = new Relance();
         relance.setEcheanceFiscale(echeance);
         relance.setModeleMessage(modele);
-        relance.setCanal(CanalNotification.SMS);
+        relance.setCanal(CanalNotification.EMAIL);
         relance.setNiveauRelance(NiveauRelance.NIVEAU_1_AMIABLE);
+        relance.setDocumentPdfGenere(true);
         relance.setDatePlanifiee(LocalDateTime.now());
 
         if (modele != null) {
             relance.setContenuFinal(templateEngineService.resoudre(modele.getContenu(), echeance));
         } else {
-            relance.setContenuFinal(relanceMessageGenerateur.genererMessageSms(echeance));
+            relance.setContenuFinal(relanceMessageGenerateur.genererCorpsEmail(echeance));
         }
 
         relanceRepository.save(relance);
         notificationDispatchService.envoyer(relance);
 
-        auditLogService.enregistrer("EcheanceFiscale", echeance.getId(), "RELANCE_NON_DEPOT", null, "canal=SMS");
+        auditLogService.enregistrer("EcheanceFiscale", echeance.getId(), "RELANCE_NON_DEPOT", null, "canal=EMAIL");
 
         return relance;
     }
@@ -300,11 +292,7 @@ public class RelanceServiceImpl implements RelanceService {
     }
 
     private CanalNotification determinerCanalPourNiveau(NiveauRelance niveau) {
-        return switch (niveau) {
-            case NIVEAU_0_PREVENTIF, NIVEAU_1_AMIABLE -> CanalNotification.SMS;
-            case NIVEAU_2_INTERMEDIAIRE -> CanalNotification.SMS_ET_EMAIL;
-            case NIVEAU_3_OFFICIEL, NIVEAU_4_FORCE -> CanalNotification.EMAIL;
-        };
+        return CanalNotification.EMAIL;
     }
 
     private ModeleMessage trouverModelePourNiveau(NiveauRelance niveau, CanalNotification canal) {
@@ -320,16 +308,15 @@ public class RelanceServiceImpl implements RelanceService {
         Relance relance = new Relance();
         relance.setDetteFiscale(dette);
         relance.setModeleMessage(modele);
-        relance.setCanal(canal);
+        relance.setCanal(CanalNotification.EMAIL);
         relance.setNiveauRelance(niveau);
         relance.setCampagne(campagne);
         relance.setAgent(agent);
         relance.setDatePlanifiee(LocalDateTime.now());
         relance.setContenuFinal(templateEngineService.resoudre(modele.getContenu(), dette));
 
-        if (niveau == NiveauRelance.NIVEAU_3_OFFICIEL) {
-            relance.setDocumentPdfGenere(true);
-        }
+        // Toute relance par courrier électronique comporte l'avis PDF certifié
+        relance.setDocumentPdfGenere(true);
 
         relanceRepository.save(relance);
         notificationDispatchService.envoyer(relance);

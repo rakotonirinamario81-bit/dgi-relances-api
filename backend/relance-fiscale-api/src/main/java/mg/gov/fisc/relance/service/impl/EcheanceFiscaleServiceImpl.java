@@ -100,7 +100,8 @@ public class EcheanceFiscaleServiceImpl implements EcheanceFiscaleService {
         EcheanceFiscale echeance = echeanceFiscaleRepository.findByIdWithRelations(echeanceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Échéance fiscale introuvable : id=" + echeanceId));
 
-        CanalNotification canal = CanalNotification.valueOf(canalStr);
+        // Seul le canal Courrier Électronique (EMAIL) est opérationnel
+        CanalNotification canal = CanalNotification.EMAIL;
 
         ModeleMessage modele = modeleMessageRepository.findAll().stream()
                 .filter(m -> m.getObjet() != null && m.getObjet().contains("déclaration"))
@@ -122,7 +123,7 @@ public class EcheanceFiscaleServiceImpl implements EcheanceFiscaleService {
         relance.setCanal(canal);
         relance.setStatutEnvoi(Relance.StatutEnvoi.PLANIFIE);
         relance.setDatePlanifiee(LocalDateTime.now());
-        relance.setDocumentPdfGenere(canal == CanalNotification.EMAIL || canal == CanalNotification.SMS_ET_EMAIL);
+        relance.setDocumentPdfGenere(true);
 
         if (agentId != null) {
             utilisateurRepository.findById(agentId).ifPresent(relance::setAgent);

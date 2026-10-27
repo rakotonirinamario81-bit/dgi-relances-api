@@ -106,7 +106,7 @@ export function CampagneForm({ onSoumettre, enCours }: CampagneFormProps) {
     if (type === 'TVA') {
       const impotTva = impotsDisponibles.find((i) => i.code.toUpperCase().includes('TVA'));
       setNom('Campagne Ciblée TVA — Retard > 15 jours');
-      setDescription('Relance groupée par SMS pour l’ensemble des entreprises en retard de liquidation de TVA.');
+      setDescription('Relance groupée par Email pour l’ensemble des entreprises en retard de liquidation de TVA.');
       if (impotTva) setImpotCibleId(impotTva.id);
       setJoursRetardMin(15);
       setNiveauRisqueCible('');

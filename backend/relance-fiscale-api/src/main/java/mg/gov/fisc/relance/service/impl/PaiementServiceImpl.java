@@ -8,7 +8,6 @@ import mg.gov.fisc.relance.entity.StatutDette;
 import mg.gov.fisc.relance.exception.ResourceNotFoundException;
 import mg.gov.fisc.relance.notification.RelanceMessageGenerateur;
 import mg.gov.fisc.relance.notification.email.EmailService;
-import mg.gov.fisc.relance.notification.sms.SmsGatewayService;
 import mg.gov.fisc.relance.report.pdf.PdfReportGenerator;
 import mg.gov.fisc.relance.repository.DetteFiscaleRepository;
 import mg.gov.fisc.relance.repository.PaiementRepository;
@@ -34,7 +33,6 @@ public class PaiementServiceImpl implements PaiementService {
     private final DetteFiscaleRepository detteFiscaleRepository;
     private final PdfReportGenerator pdfReportGenerator;
     private final EmailService emailService;
-    private final SmsGatewayService smsGatewayService;
     private final RelanceMessageGenerateur relanceMessageGenerateur;
     private final AuditLogService auditLogService;
     private final RisqueScoringEngine risqueScoringEngine;
@@ -43,7 +41,6 @@ public class PaiementServiceImpl implements PaiementService {
                                DetteFiscaleRepository detteFiscaleRepository,
                                PdfReportGenerator pdfReportGenerator,
                                EmailService emailService,
-                               SmsGatewayService smsGatewayService,
                                RelanceMessageGenerateur relanceMessageGenerateur,
                                AuditLogService auditLogService,
                                RisqueScoringEngine risqueScoringEngine) {
@@ -51,7 +48,6 @@ public class PaiementServiceImpl implements PaiementService {
         this.detteFiscaleRepository = detteFiscaleRepository;
         this.pdfReportGenerator = pdfReportGenerator;
         this.emailService = emailService;
-        this.smsGatewayService = smsGatewayService;
         this.relanceMessageGenerateur = relanceMessageGenerateur;
         this.auditLogService = auditLogService;
         this.risqueScoringEngine = risqueScoringEngine;
@@ -87,11 +83,11 @@ public class PaiementServiceImpl implements PaiementService {
         auditLogService.enregistrer("DetteFiscale", dette.getId(), "PAIEMENT_ENREGISTRE",
                 "montant_paye=" + montantAvant, "montant_paye=" + dette.getMontantPaye() + ", paiementId=" + paiementSauvegarde.getId());
 
-        // Déclencher l'envoi asynchrone de confirmation (SMS + Email avec reçu PDF)
+        // Declencher l'envoi asynchrone de confirmation (Email avec recu PDF)
         try {
             envoyerConfirmationPaiement(paiementSauvegarde.getId());
         } catch (Exception e) {
-            log.warn("⚠️ Impossible de notifier le contribuable du paiement #{}: {}", paiementSauvegarde.getId(), e.getMessage());
+            log.warn("Impossible de notifier le contribuable du paiement #{}: {}", paiementSauvegarde.getId(), e.getMessage());
         }
 
         return paiementSauvegarde;
@@ -133,16 +129,9 @@ public class PaiementServiceImpl implements PaiementService {
         Contribuable contribuable = dette.getContribuable();
         if (contribuable == null) return;
 
-        log.info("🧾 Envoi de la confirmation d'encaissement #{} pour {}", paiementId, contribuable.getNomAffichage());
+        log.info("Envoi de la confirmation d'encaissement #{} pour {}", paiementId, contribuable.getNomAffichage());
 
-        // 1. Envoi SMS
-        String telephone = contribuable.getTelephone();
-        if (telephone != null && !telephone.isBlank()) {
-            String sms = relanceMessageGenerateur.genererMessageConfirmationPaiementSms(paiement);
-            smsGatewayService.envoyer(telephone, sms);
-        }
-
-        // 2. Envoi Email avec Quittance PDF
+        // Envoi Email avec Quittance PDF (canal unique operationnel)
         String email = contribuable.getEmail();
         if (email != null && !email.isBlank()) {
             byte[] quittancePdf = null;

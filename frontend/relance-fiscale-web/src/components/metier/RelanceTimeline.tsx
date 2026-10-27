@@ -10,13 +10,13 @@ const LIBELLE_NIVEAU: Record<string, { titre: string; badge: string; color: stri
   },
   NIVEAU_1_AMIABLE: {
     titre: 'Niveau 1 — Amiable',
-    badge: 'Rappel courtois (SMS)',
+    badge: 'Rappel courtois (Email)',
     color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     etape: '1',
   },
   NIVEAU_2_INTERMEDIAIRE: {
     titre: 'Niveau 2 — Sommation',
-    badge: 'Mise en demeure (SMS + Email)',
+    badge: 'Mise en demeure (Email)',
     color: 'bg-amber-50 text-amber-800 border-amber-200',
     etape: '2',
   },

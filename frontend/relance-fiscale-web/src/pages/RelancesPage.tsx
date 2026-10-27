@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
+import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
 import { Button } from '@/components/common/Button';
 import { StatutDetteBadge } from '@/components/metier/StatutDetteBadge';
 import { RelanceTimeline } from '@/components/metier/RelanceTimeline';
@@ -37,9 +37,9 @@ export function RelancesPage() {
   const [pageCourante, setPageCourante] = useState(1);
   const [elementsParPage, setElementsParPage] = useState(15);
 
-  // Configuration de l'envoi
-  const [canalChoisi, setCanalChoisi] = useState<CanalNotification>('SMS_ET_EMAIL');
-  const [ongletApercu, setOngletApercu] = useState<'SMS' | 'EMAIL'>('SMS');
+  // Configuration de l'envoi — Email uniquement (canal SMS retiré)
+  const canalChoisi: CanalNotification = 'EMAIL';
+  const ongletApercu = 'EMAIL';
 
   // Libellé de l'Expéditeur officiel et ville d'émission dynamiques
   const [libelleExpediteur, setLibelleExpediteur] = useState<string>(() =>
@@ -59,7 +59,6 @@ export function RelancesPage() {
   // Aperçu dynamique et édition
   const [apercu, setApercu] = useState<RelanceApercu | null>(null);
   const [chargementApercu, setChargementApercu] = useState(false);
-  const [messageSms, setMessageSms] = useState('');
   const [objetEmail, setObjetEmail] = useState('');
   const [messageEmail, setMessageEmail] = useState('');
 
@@ -67,7 +66,6 @@ export function RelancesPage() {
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
-  const [masquerAvertissementSms, setMasquerAvertissementSms] = useState(false);
 
   const { relances, chargement: chargementRelances, recharger } = useRelances(detteRecherchee);
 
@@ -109,7 +107,6 @@ export function RelancesPage() {
       .then((data) => {
         if (!ignore) {
           setApercu(data);
-          setMessageSms(data.messageSms);
           setObjetEmail(data.objetEmail);
           setMessageEmail(data.corpsEmail);
         }
@@ -216,7 +213,6 @@ export function RelancesPage() {
 
   function reinitialiserMessages() {
     if (apercu) {
-      setMessageSms(apercu.messageSms);
       setObjetEmail(apercu.objetEmail);
       setMessageEmail(apercu.corpsEmail);
     }
@@ -237,19 +233,11 @@ export function RelancesPage() {
       await relanceService.envoyerManuelle({
         detteFiscaleId: detteRecherchee,
         canal: canalChoisi,
-        messageSms: messageSms.trim() || undefined,
         messageEmail: messageEmail.trim() || undefined,
         objetEmail: objetEmail.trim() || undefined,
       });
 
-      const canalNom =
-        canalChoisi === 'SMS_ET_EMAIL'
-          ? 'SMS et Courrier Électronique'
-          : canalChoisi === 'SMS'
-          ? 'SMS Direct'
-          : 'Courrier Électronique';
-
-      setSucces(`Notification de relance transmise avec succès par ${canalNom} au contribuable.`);
+      setSucces(`Notification de relance transmise avec succès par Courrier Électronique au contribuable.`);
       await Promise.all([recharger(), chargerDettes()]);
     } catch (err) {
       setErreur(extraireMessageErreur(err));
@@ -270,17 +258,17 @@ export function RelancesPage() {
               <span>DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY · RECOUVREMENT & SOMMATIONS</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              <span>📨</span> Relances Fiscales & Suivi Multicanal
+              <span>📨</span> Relances Fiscales & Suivi des Notifications
             </h1>
             <p className="text-xs sm:text-sm text-red-100 max-w-2xl font-light leading-relaxed">
-              Dispositif officiel d'émission automatisée de rappels amiables, mises en demeure et avis d'exécution par SMS certifié et courrier électronique officiel conforme au CGI Madagascar.
+              Dispositif officiel d'émission automatisée de rappels amiables, mises en demeure et avis d'exécution par courrier électronique officiel avec avis certifié conforme au CGI Madagascar.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 self-start md:self-auto">
             <div className="flex items-center gap-2 rounded-lg bg-black/25 px-3 py-2 text-xs border border-white/10 font-mono text-amber-300">
-              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>Email ✓ | SMS ⚠️ Crédits requis</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Canal Email ✓ Opérationnel</span>
             </div>
             <Button
               variante="secondaire"
@@ -294,36 +282,6 @@ export function RelancesPage() {
         </div>
       </div>
 
-      {/* 1.1 Avertissement sur le Canal SMS (Compte Brevo sans crédits SMS) */}
-      {!masquerAvertissementSms && (
-        <div className="flex items-start justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs sm:text-sm text-amber-950 shadow-sm transition-all">
-          <div className="flex items-start gap-3">
-            <span className="text-xl shrink-0">⚠️</span>
-            <div className="space-y-1">
-              <span className="font-extrabold text-amber-950 block text-sm sm:text-base">
-                Canal SMS Brevo : Crédits d'envoi transactionnels requis
-              </span>
-              <p className="text-xs text-amber-900 leading-relaxed">
-                Les requêtes SMS sont acceptées par l'API Brevo (statut 201), mais <strong>rejetées par les opérateurs téléphoniques à Madagascar (Telma, Orange, Airtel)</strong> car le compte Brevo gratuit actuel ne possède pas de crédits SMS transactionnels (les 300 envois gratuits sont réservés exclusivement au canal Email).
-              </p>
-              <p className="text-xs text-amber-900 leading-relaxed">
-                💡 <strong>Recommandation DGI :</strong> Utilisez prioritairement le canal <strong>Courrier Électronique (Email)</strong> ou <strong>SMS + Email</strong> pour garantir l'envoi effectif des notifications officielles. L'envoi Email par SMTP est 100% opérationnel.
-              </p>
-              <p className="text-[11px] text-amber-800 font-mono pt-1">
-                Pour réactiver l'envoi effectif des SMS : Rechargez le solde SMS transactionnel sur <a href="https://app.brevo.com" target="_blank" rel="noopener noreferrer" className="underline font-bold text-amber-950 hover:text-black">app.brevo.com</a> (Transactional SMS → Buy credits).
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMasquerAvertissementSms(true)}
-            className="text-amber-800 hover:text-amber-950 font-bold text-xs shrink-0 rounded-lg px-2 py-1 hover:bg-amber-200/60 transition-colors"
-            title="Masquer cet avertissement"
-          >
-            ✕ Masquer
-          </button>
-        </div>
-      )}
 
       {/* 2. Cartes KPIs Stratégiques */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -357,7 +315,7 @@ export function RelancesPage() {
             <span className="text-xs text-gray-500 font-medium">avis envoyés</span>
           </div>
           <div className="mt-2 text-[11px] text-gray-500 flex items-center gap-1">
-            <span className="font-semibold text-emerald-700">SMS & Emails</span> cumulés délivrés
+            <span className="font-semibold text-emerald-700">Courrier Électronique</span> délivré
           </div>
         </div>
 
@@ -594,20 +552,6 @@ export function RelancesPage() {
                 <div className="bg-gray-50/80 px-5 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                   <div className="flex flex-wrap items-center gap-4">
                     <span className="flex items-center gap-1.5">
-                      <span className="font-semibold text-gray-700">📱 Mobile SMS :</span>
-                      {apercu.telephone ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 font-mono font-bold text-emerald-800 border border-emerald-200">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          {apercu.telephone}
-                        </span>
-                      ) : (
-                        <span className="rounded bg-red-50 px-2 py-0.5 font-semibold text-red-600 italic">
-                          Non renseigné
-                        </span>
-                      )}
-                    </span>
-
-                    <span className="flex items-center gap-1.5">
                       <span className="font-semibold text-gray-700">📧 Courriel Officiel :</span>
                       {apercu.email ? (
                         <span className="inline-flex items-center gap-1 rounded bg-blue-50 px-2 py-0.5 font-bold text-blue-800 border border-blue-200">
@@ -659,240 +603,32 @@ export function RelancesPage() {
                 </button>
               </div>
 
-              {/* Sélection du Canal */}
-              <div>
-                <label className="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2.5">
-                  Canal de diffusion officiel :
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <label
-                    className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      canalChoisi === 'SMS_ET_EMAIL'
-                        ? 'border-fiscal-bordeaux bg-red-50/40 shadow-sm ring-1 ring-fiscal-bordeaux'
-                        : 'border-gray-200 hover:bg-gray-50/80 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="canal"
-                      value="SMS_ET_EMAIL"
-                      checked={canalChoisi === 'SMS_ET_EMAIL'}
-                      onChange={() => setCanalChoisi('SMS_ET_EMAIL')}
-                      className="mt-1 text-fiscal-bordeaux focus:ring-fiscal-bordeaux"
-                    />
-                    <div>
-                      <div className="text-sm font-extrabold text-gray-900 flex items-center gap-1.5 flex-wrap">
-                        <span>📲</span> SMS & Email
-                        <span className="text-[10px] bg-red-100 text-fiscal-bordeaux font-bold px-1.5 py-0.2 rounded">
-                          Recommandé
-                        </span>
-                        <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-200">
-                          ⚠️ SMS restreint
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">
-                        Notification Email 100% fonctionnelle + SMS (nécessite crédits Brevo).
-                      </div>
-                    </div>
-                  </label>
-
-                  <label
-                    className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      canalChoisi === 'SMS'
-                        ? 'border-fiscal-bordeaux bg-red-50/40 shadow-sm ring-1 ring-fiscal-bordeaux'
-                        : 'border-gray-200 hover:bg-gray-50/80 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="canal"
-                      value="SMS"
-                      checked={canalChoisi === 'SMS'}
-                      onChange={() => {
-                        setCanalChoisi('SMS');
-                        setOngletApercu('SMS');
-                      }}
-                      className="mt-1 text-fiscal-bordeaux focus:ring-fiscal-bordeaux"
-                    />
-                    <div>
-                      <div className="text-sm font-extrabold text-gray-900 flex items-center gap-1.5 flex-wrap">
-                        <span>📱</span> SMS Mobile Uniquement
-                        <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-200">
-                          ⚠️ Crédits requis
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">
-                        Message instantané condensé direct sur téléphone.
-                      </div>
-                    </div>
-                  </label>
-
-                  <label
-                    className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                      canalChoisi === 'EMAIL'
-                        ? 'border-fiscal-bordeaux bg-red-50/40 shadow-sm ring-1 ring-fiscal-bordeaux'
-                        : 'border-gray-200 hover:bg-gray-50/80 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="canal"
-                      value="EMAIL"
-                      checked={canalChoisi === 'EMAIL'}
-                      onChange={() => {
-                        setCanalChoisi('EMAIL');
-                        setOngletApercu('EMAIL');
-                      }}
-                      className="mt-1 text-fiscal-bordeaux focus:ring-fiscal-bordeaux"
-                    />
-                    <div>
-                      <div className="text-sm font-extrabold text-gray-900 flex items-center gap-1.5 flex-wrap">
-                        <span>📧</span> Courrier Électronique
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-200">
-                          ✓ 100% Garanti
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">
-                        Avis d'imposition officiel complet avec décomposition des sommes.
-                      </div>
-                    </div>
-                  </label>
+              {/* Canal de diffusion — Email uniquement (opérationnel) */}
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border-2 border-emerald-400 bg-emerald-50/60 shadow-sm">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 text-lg shrink-0">📧</span>
+                <div>
+                  <div className="text-sm font-extrabold text-gray-900 flex items-center gap-2 flex-wrap">
+                    Courrier Électronique Officiel
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded border border-emerald-200">
+                      ✓ Canal unique · 100% Opérationnel
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-gray-500 mt-0.5">
+                    Avis d'imposition officiel complet avec décomposition des sommes et pièce jointe PDF.
+                  </div>
                 </div>
               </div>
 
-              {/* Onglets de prévisualisation (SMS vs EMAIL) */}
+              {/* Aperçu du Courrier Électronique Officiel */}
               <div className="space-y-4">
-                <div className="flex border-b border-gray-200 text-xs font-bold">
-                  <button
-                    type="button"
-                    onClick={() => setOngletApercu('SMS')}
-                    className={`px-5 py-3 border-b-2 flex items-center gap-2 transition-colors ${
-                      ongletApercu === 'SMS'
-                        ? 'border-fiscal-bordeaux text-fiscal-bordeaux font-black'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <span>📱</span>
-                    <span>Simulateur Smartphone SMS</span>
-                    <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
-                      {messageSms.length} car.
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setOngletApercu('EMAIL')}
-                    className={`px-5 py-3 border-b-2 flex items-center gap-2 transition-colors ${
-                      ongletApercu === 'EMAIL'
-                        ? 'border-fiscal-bordeaux text-fiscal-bordeaux font-black'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <span>📧</span>
-                    <span>Avis Électronique Officiel DGI</span>
-                  </button>
-                </div>
-
                 {chargementApercu ? (
                   <div className="p-12 text-center text-xs text-gray-400">
                     <span className="inline-block animate-spin text-2xl mb-2">⏳</span>
-                    <p>Génération de l'aperçu certifié DGI en cours...</p>
+                    <p>Génération de l'aperçu certifié DRI en cours...</p>
                   </div>
                 ) : (
                   <div>
-                    {/* APERÇU MODE SMS : MOCKUP SMARTPHONE */}
-                    {ongletApercu === 'SMS' && (
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {/* Simulateur mobile (5 cols) */}
-                        <div className="lg:col-span-5 flex justify-center">
-                          <div className="w-full max-w-[320px] rounded-[36px] border-4 border-gray-800 bg-gray-900 p-2 shadow-2xl">
-                            {/* Écran du téléphone */}
-                            <div className="rounded-[28px] bg-slate-100 overflow-hidden flex flex-col h-[460px]">
-                              {/* Barre de statut supérieure */}
-                              <div className="bg-gray-800 px-5 py-2 text-white flex items-center justify-between text-[10px]">
-                                <span className="font-bold">09:41</span>
-                                <div className="h-3 w-16 bg-black rounded-full" />
-                                <div className="flex items-center gap-1 font-mono">
-                                  <span>4G</span>
-                                  <span>100%</span>
-                                </div>
-                              </div>
-
-                              {/* En-tête de message SMS */}
-                              <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-fiscal-bordeaux text-white flex items-center justify-center text-[10px] font-black">
-                                  DRI
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs font-bold text-gray-900 leading-tight truncate">
-                                    {libelleExpediteur.toUpperCase()}
-                                  </div>
-                                  <div className="text-[10px] text-emerald-600 flex items-center gap-1">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span>Émetteur Officiel Certifié · {villeEmission}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Zone d'affichage des bulles SMS */}
-                              <div className="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs bg-slate-50">
-                                <div className="text-center text-[10px] text-gray-400 font-medium">Aujourd'hui</div>
-
-                                <div className="max-w-[88%] rounded-2xl rounded-tl-sm bg-white p-3 text-gray-800 shadow-sm border border-gray-200/60 leading-relaxed font-sans text-[11px]">
-                                  {messageSms || (
-                                    <span className="text-gray-400 italic">Saisissez un texte pour visualiser...</span>
-                                  )}
-                                  <div className="mt-1.5 text-right text-[9px] text-gray-400 font-mono">09:41 · Délivré</div>
-                                </div>
-                              </div>
-
-                              {/* Pied du simulateur */}
-                              <div className="bg-white border-t border-gray-200 p-2 text-[10px] text-center text-gray-400 font-medium">
-                                Notification DGI par SMS Court
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Éditeur de texte SMS (7 cols) */}
-                        <div className="lg:col-span-7 space-y-3">
-                          <div className="flex items-center justify-between text-xs text-gray-600">
-                            <span className="font-bold text-gray-800">
-                              Texte du message SMS (modifiable avant expédition) :
-                            </span>
-                            <span className="font-mono text-[11px] bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-                              {messageSms.length} caractères · ~{Math.ceil(messageSms.length / 160) || 1} SMS
-                            </span>
-                          </div>
-
-                          <div className="rounded-xl border border-gray-300 bg-white p-2 shadow-inner focus-within:border-fiscal-bordeaux focus-within:ring-1 focus-within:ring-fiscal-bordeaux">
-                            <textarea
-                              value={messageSms}
-                              onChange={(e) => setMessageSms(e.target.value)}
-                              rows={6}
-                              className="w-full resize-y border-0 bg-transparent p-2 text-xs font-mono leading-relaxed text-gray-800 focus:ring-0"
-                              placeholder="Rédigez le texte SMS de relance..."
-                            />
-                          </div>
-
-                          <div className="rounded-lg bg-amber-50 border border-amber-300 p-3 text-xs text-amber-950 flex items-start gap-2">
-                            <span className="text-base shrink-0">⚠️</span>
-                            <div className="leading-relaxed text-[11px]">
-                              <strong>Notice Brevo SMS :</strong> Les requêtes SMS sont transmises au serveur Brevo, mais la livraison finale aux mobiles Madagascar (Telma, Orange, Airtel) nécessite un solde de crédits SMS transactionnels sur le compte Brevo. Privilégiez le canal <strong>Courrier Électronique</strong> pour garantir la réception immédiate par le contribuable.
-                            </div>
-                          </div>
-
-                          <div className="rounded-lg bg-slate-50 border border-gray-200 p-3 text-xs text-gray-700 flex items-start gap-2">
-                            <span className="text-base">💡</span>
-                            <div className="leading-relaxed text-[11px]">
-                              <strong>Formatage optimal :</strong> Le SMS doit mentionner le NIF, la référence de la dette, le montant en Ariary et le délai de grâce accordé avant majoration.
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* APERÇU MODE EMAIL : PAPIER À LETTRES OFFICIEL DGI */}
+                    {/* APERÇU MODE EMAIL : PAPIER À LETTRES OFFICIEL DRI */}
                     {ongletApercu === 'EMAIL' && (
                       <div className="space-y-4">
                         <div>
@@ -984,8 +720,7 @@ export function RelancesPage() {
                   enCours={envoiEnCours}
                   className="w-full sm:w-auto px-7 py-3 text-sm font-extrabold shadow-md !bg-fiscal-bordeaux hover:!bg-[#631818]"
                 >
-                  🚀 Déclencher l'envoi de la relance (
-                  {canalChoisi === 'SMS_ET_EMAIL' ? 'SMS & Email' : canalChoisi === 'SMS' ? 'SMS' : 'Email'})
+                  🚀 Déclencher l'envoi de la relance (Courrier Électronique)
                 </Button>
               </div>
             </form>
