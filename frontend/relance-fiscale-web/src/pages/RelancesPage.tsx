@@ -373,7 +373,7 @@ export function RelancesPage() {
             }`}
           >
             <span>⚡</span>
-            <span>Studio d'Envoi Multicanal</span>
+            <span>Studio d'Émission des Relances</span>
             {detteSelectionnee && (
               <span className="ml-1 text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-mono">
                 #{detteSelectionnee.id}
@@ -412,7 +412,7 @@ export function RelancesPage() {
         </div>
       </div>
 
-      {/* 4. CONTENU DE L'ONGLET 1 : ASSISTANT D'ENVOI & STUDIO MULTICANAL */}
+      {/* 4. CONTENU DE L'ONGLET 1 : ASSISTANT D'ENVOI & STUDIO D'ÉMISSION */}
       {ongletPrincipal === 'envoi' && (
         <div className="space-y-6">
           {/* Sélection de la créance */}
@@ -586,7 +586,7 @@ export function RelancesPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-4">
                 <div>
                   <h2 className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                    <span>⚡</span> Studio de Notification Multicanal
+                    <span>⚡</span> Studio d'Émission Officielle
                   </h2>
                   <p className="text-xs text-gray-500">
                     Les montants, motifs de retard et pénalités légales sont calculés en temps réel et injectés dans les messages.

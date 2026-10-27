@@ -124,7 +124,7 @@ export function KpiCards({ stats }: KpiCardsProps) {
             {stats.nombreRelancesEnvoyees}
           </div>
           <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-700/90 font-medium">
-            <span>Multicanal SMS & Email DGI</span>
+            <span>Courrier Électronique Officiel</span>
           </div>
         </div>
       </div>
