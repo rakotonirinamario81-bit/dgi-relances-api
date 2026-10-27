@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
+﻿import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { StatutDetteBadge } from '@/components/metier/StatutDetteBadge';
@@ -392,7 +392,7 @@ export function PaiementsPage({
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-md border border-white/15">
               <span>🇲🇬</span>
-              <span>DIRECTION GÉNÉRALE DES IMPÔTS · GESTION DE CAISSE & ÉCHELONNEMENT</span>
+              <span>DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY · GESTION DE CAISSE & ÉCHELONNEMENT</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
               <span>🏛️</span> Encaissements, Quittances & Moratoires

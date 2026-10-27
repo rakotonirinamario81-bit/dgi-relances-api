@@ -1,4 +1,4 @@
-package mg.gov.fisc.relance.report.pdf;
+﻿package mg.gov.fisc.relance.report.pdf;
 
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.geom.PageSize;
@@ -46,7 +46,7 @@ public class GrandLivrePdfGenerator {
             enteteTable.addCell(new Cell().add(new Paragraph("REPOBLIKAN'I MADAGASIKARA\nFitiavana - Tanindrazana - Fandrosoana")
                     .setFontSize(8).setBold().setTextAlignment(TextAlignment.LEFT)).setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
 
-            enteteTable.addCell(new Cell().add(new Paragraph("DIRECTION GÉNÉRALE DES IMPÔTS\nGRAND LIVRE COMPTABLE CONSOLIDÉ DU RECOUVREMENT FISCAL")
+            enteteTable.addCell(new Cell().add(new Paragraph("DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY\nGRAND LIVRE COMPTABLE CONSOLIDÉ DU RECOUVREMENT FISCAL")
                     .setFontSize(11).setBold().setTextAlignment(TextAlignment.CENTER).setFontColor(ColorConstants.DARK_GRAY)).setBorder(com.itextpdf.layout.borders.Border.NO_BORDER));
 
             enteteTable.addCell(new Cell().add(new Paragraph("Arrêté au : " + dateRef.format(DATE_FR) + "\nExercice Budgétaire : " + dateRef.getYear())

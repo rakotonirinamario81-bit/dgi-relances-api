@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -95,7 +95,7 @@ export function PublicVerificationPage() {
             </div>
             <div>
               <div className="text-[10px] font-bold tracking-wider text-fiscal-bordeaux uppercase">
-                Direction Générale des Impôts
+                DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY
               </div>
               <h1 className="text-sm font-bold text-gray-900 sm:text-base">
                 Portail Public de Vérification Fiscale
@@ -370,7 +370,7 @@ export function PublicVerificationPage() {
 
       {/* Pied de page officiel */}
       <footer className="bg-white border-t border-gray-200 py-6 text-center text-xs text-gray-500 space-y-1">
-        <p className="font-semibold text-gray-700">Direction Générale des Impôts — République de Madagascar</p>
+        <p className="font-semibold text-gray-700">DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY — République de Madagascar</p>
         <p className="text-[11px]">Plateforme Sécurisée de Dématérialisation et de Vérification des Titres Fiscaux</p>
       </footer>
     </div>

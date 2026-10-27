@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+﻿import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { RoleGuard } from '@/auth/RoleGuard';
 import { ROUTES, ROLES_RESPONSABLE_ET_PLUS, ROLES_ADMIN_SEUL } from '@/routes/routesConfig';
@@ -123,7 +123,7 @@ export function Sidebar() {
           <div className="overflow-hidden">
             <p className="truncate text-sm font-bold leading-tight text-white">Service Fiscal</p>
             <p className="truncate text-[10px] text-white/50 leading-tight">
-              Direction Générale des Impôts
+              DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY
             </p>
           </div>
         )}

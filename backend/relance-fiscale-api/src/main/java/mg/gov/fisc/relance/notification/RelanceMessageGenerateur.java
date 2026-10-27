@@ -1,4 +1,4 @@
-package mg.gov.fisc.relance.notification;
+﻿package mg.gov.fisc.relance.notification;
 
 import mg.gov.fisc.relance.entity.DetteFiscale;
 import mg.gov.fisc.relance.entity.EcheanceFiscale;
@@ -70,7 +70,7 @@ public class RelanceMessageGenerateur {
     }
 
     /**
-     * Corps de l'email officiel complet de la Direction Générale des Impôts (DGI).
+     * Corps de l'email officiel complet de la DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY (DGI).
      * Détaillant le motif précis, l'impôt concerné, la décomposition des montants
      * et le solde net restant à payer.
      */
@@ -201,7 +201,7 @@ public class RelanceMessageGenerateur {
         String dateLimite = echeance.getDateLimite().format(DATE_FR);
 
         return """
-                DIRECTION GÉNÉRALE DES IMPÔTS - RÉPUBLIQUE DE MADAGASCAR
+                DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY - RÉPUBLIQUE DE MADAGASCAR
                 Service de Suivi des Déclarations Fiscales
 
                 À l'attention de : %s (NIF : %s)
@@ -221,7 +221,7 @@ public class RelanceMessageGenerateur {
                 À défaut de régularisation dans ce délai, une procédure de taxation d'office
                 assortie des majorations légales sera engagée.
 
-                Direction Générale des Impôts
+                DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY
                 """.formatted(
                 nom, nif, impotLibelle, echeance.getPeriode(), echeance.getId(),
                 dateLimite, impotLibelle, impotCode, echeance.getPeriode()
@@ -285,7 +285,7 @@ public class RelanceMessageGenerateur {
                 RÉPUBLIQUE DE MADAGASCAR
                 Tanindrazana - Fahafahana - Fandrosoana
                 MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES
-                DIRECTION GÉNÉRALE DES IMPÔTS (DGI)
+                DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY (DGI)
                 Centre Fiscal : %s
                 ----------------------------------------------------------------------
                 CONFIRMATION D'ENCAISSEMENT & QUITTANCE FISCALE OFFICIELLE
@@ -298,7 +298,7 @@ public class RelanceMessageGenerateur {
 
                 Madame, Monsieur,
 
-                La Direction Générale des Impôts vous confirme la bonne réception et
+                La DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY vous confirme la bonne réception et
                 l'enregistrement comptable de votre versement pour le règlement de votre créance fiscale.
 
                 RÉCAPITULATIF DU PAIEMENT EFFECTUÉ :
@@ -327,7 +327,7 @@ public class RelanceMessageGenerateur {
                 Nous vous remercions pour votre civisme fiscal.
 
                 Le Receveur des Impôts
-                Direction Générale des Impôts
+                DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY
                 """.formatted(
                 commune,
                 numQuittance,

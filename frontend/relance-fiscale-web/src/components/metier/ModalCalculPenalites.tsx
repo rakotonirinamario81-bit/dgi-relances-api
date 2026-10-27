@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { penaliteService } from '@/services/penaliteService';
@@ -338,7 +338,7 @@ export function ModalCalculPenalites({
                 {afficherSectionRemise && (
                   <div className="mt-3 pt-3 border-t border-gray-200 space-y-3">
                     <p className="text-xs text-gray-500">
-                      Conformément aux prérogatives de la Direction Générale des Impôts, une remise partielle ou totale
+                      Conformément aux prérogatives de la DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY, une remise partielle ou totale
                       peut être accordée sur les pénalités et intérêts liquidés (plafond : {(calcul.montantPenalite + calcul.montantInterets).toLocaleString('fr-FR')} Ar).
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -1,4 +1,4 @@
-package mg.gov.fisc.relance.report.pdf;
+﻿package mg.gov.fisc.relance.report.pdf;
 
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -154,12 +154,10 @@ public class PdfReportGenerator {
 
             // Header Left
             document.add(new Paragraph("MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\n" +
-                    "SECRÉTARIAT GÉNÉRAL\n" +
-                    "DIRECTION GÉNÉRALE DES IMPÔTS\n" +
-                    "DIRECTION TECHNIQUE\n" +
                     "DIRECTION RÉGIONALE DES IMPÔTS\n" +
+                    "VATOVAVY FITOVINANY\n" +
                     "SERVICE RÉGIONAL DES ENTREPRISES\n" +
-                    "VATOVAVY FITOVINANY")
+                    "Hôtel des Impôts Manakara Be")
                     .setFontSize(8).setMultipliedLeading(1.2f));
 
             // Header Right
@@ -207,7 +205,7 @@ public class PdfReportGenerator {
             // Footer
             document.add(new Paragraph("_________________________________________________________________________________")
                     .setTextAlignment(TextAlignment.CENTER).setMarginTop(35).setFontSize(8).setFontColor(ColorConstants.GRAY));
-            document.add(new Paragraph("Direction Générale des Impôts - Service Régional Des Entreprises Vatovavy Fitovinany\n" +
+            document.add(new Paragraph("DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY - Service Régional Des Entreprises Vatovavy Fitovinany\n" +
                     "Hôtel des Impôts Manakara Be\n" +
                     "E-mail : sre.vatovavyfitovinany@gmail.com   Site web : www.impots.mg")
                     .setTextAlignment(TextAlignment.CENTER).setFontSize(8).setMarginTop(5));
@@ -230,7 +228,7 @@ public class PdfReportGenerator {
             String datePaiement = paiement.getDatePaiement() != null ? paiement.getDatePaiement().format(DATE_FR) : java.time.LocalDate.now().format(DATE_FR);
 
             // En-tête République & DGI
-            document.add(new Paragraph("RÉPUBLIQUE DE MADAGASCAR\nTanindrazana - Fahafahana - Fandrosoana\nMINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION GÉNÉRALE DES IMPÔTS")
+            document.add(new Paragraph("RÉPUBLIQUE DE MADAGASCAR\nTanindrazana - Fahafahana - Fandrosoana\nMINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY")
                     .setBold().setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMultipliedLeading(1.1f));
 
             document.add(new Paragraph("QUITTANCE OFFICIELLE DE PAIEMENT FISCAL")
@@ -312,7 +310,7 @@ public class PdfReportGenerator {
             String dateAccord = moratoire.getDateAccord() != null ? moratoire.getDateAccord().format(DATE_FR) : java.time.LocalDate.now().format(DATE_FR);
 
             // En-tête République & DGI
-            document.add(new Paragraph("RÉPUBLIQUE DE MADAGASCAR\nTanindrazana - Fahafahana - Fandrosoana\nMINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION GÉNÉRALE DES IMPÔTS")
+            document.add(new Paragraph("RÉPUBLIQUE DE MADAGASCAR\nTanindrazana - Fahafahana - Fandrosoana\nMINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY")
                     .setBold().setFontSize(10).setTextAlignment(TextAlignment.CENTER).setMultipliedLeading(1.1f));
 
             document.add(new Paragraph("CONVENTION D'APUREMENT ÉCHELONNÉ ET MORATOIRE FISCAL")
@@ -406,7 +404,7 @@ public class PdfReportGenerator {
             // En-tête officiel
             document.add(new Paragraph("REPOBLIKAN'I MADAGASIKARA\nFitiavana - Tanindrazana - Fandrosoana")
                     .setTextAlignment(TextAlignment.CENTER).setFontSize(9).setBold());
-            document.add(new Paragraph("MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION GÉNÉRALE DES IMPÔTS\nDIRECTION DU RECOUVREMENT FISCAL")
+            document.add(new Paragraph("MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY\nDIRECTION DU RECOUVREMENT FISCAL")
                     .setTextAlignment(TextAlignment.CENTER).setFontSize(8).setMarginBottom(10));
 
             // Titre du document
@@ -507,7 +505,7 @@ public class PdfReportGenerator {
             // En-tête officiel
             document.add(new Paragraph("REPOBLIKAN'I MADAGASIKARA\nFitiavana - Tanindrazana - Fandrosoana")
                     .setTextAlignment(TextAlignment.CENTER).setFontSize(9).setBold());
-            document.add(new Paragraph("MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION GÉNÉRALE DES IMPÔTS\nDIRECTION DU RECOUVREMENT FISCAL")
+            document.add(new Paragraph("MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\nDIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY\nDIRECTION DU RECOUVREMENT FISCAL")
                     .setTextAlignment(TextAlignment.CENTER).setFontSize(8).setMarginBottom(15));
 
             document.add(new Paragraph("ATTESTATION DE SITUATION FISCALE")

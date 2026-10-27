@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { CampagneForm } from '@/components/metier/CampagneForm';
@@ -123,7 +123,7 @@ export function CampagnesRelancePage() {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-md border border-white/15">
               <span>🇲🇬</span>
-              <span>DIRECTION GÉNÉRALE DES IMPÔTS · OPÉRATIONS COLLECTIVES</span>
+              <span>DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY · OPÉRATIONS COLLECTIVES</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
               <span>📢</span> Campagnes de Relances Groupées

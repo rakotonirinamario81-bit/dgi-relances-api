@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+﻿import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AreaChart, Area, PieChart, Pie, Cell,
@@ -126,7 +126,7 @@ export function DashboardOverview() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold backdrop-blur-xs text-amber-300">
-                <span>🇲🇬</span> Direction Générale des Impôts
+                <span>🇲🇬</span> DIRECTION REGIONALE DES IMPOTS - VATOVAVY FITOVINANY
               </span>
               <span className="text-xs text-white/60 capitalize">
                 • {dateFormatee}

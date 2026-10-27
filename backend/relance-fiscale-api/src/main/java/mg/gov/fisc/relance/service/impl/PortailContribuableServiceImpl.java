@@ -1,4 +1,4 @@
-package mg.gov.fisc.relance.service.impl;
+﻿package mg.gov.fisc.relance.service.impl;
 
 import mg.gov.fisc.relance.dto.response.QuittanceVerificationResponseDTO;
 import mg.gov.fisc.relance.dto.response.SituationFiscalePubliqueDTO;
@@ -79,7 +79,7 @@ public class PortailContribuableServiceImpl implements PortailContribuableServic
                 paiement.getMontant(),
                 paiement.getModePaiement(),
                 paiement.getReference(),
-                "CERTIFIÉ CONFORME - DIRECTION GÉNÉRALE DES IMPÔTS",
+                "CERTIFIÉ CONFORME - DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY",
                 true,
                 LocalDateTime.now().format(FORMAT_VERIF)
         );
@@ -112,7 +112,7 @@ public class PortailContribuableServiceImpl implements PortailContribuableServic
         boolean enRegle = (soldeGlobal.compareTo(BigDecimal.ZERO) <= 0);
         String statut = enRegle ? "EN RÈGLE / QUITUS ACCORDÉ" : "CRÉANCES FISCALES EN INSTANCE DE RÈGLEMENT";
         String codeAttestation = "ATTEST-2026-" + String.format("%06d", Math.abs(c.getNif().hashCode() % 1000000));
-        String mentions = "Attestation publique délivrée sous timbre officiel par la Direction Générale des Impôts de Madagascar.";
+        String mentions = "Attestation publique délivrée sous timbre officiel par la DIRECTION REGIONALE DES IMPOTS VATOVAVY FITOVINANY de Madagascar.";
 
         return new SituationFiscalePubliqueDTO(
                 c.getNif(),
