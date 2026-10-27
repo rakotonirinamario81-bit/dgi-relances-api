@@ -59,6 +59,11 @@ public class PaiementServiceImpl implements PaiementService {
 
     @Override
     public Paiement enregistrer(Long detteFiscaleId, BigDecimal montant, String modePaiement, String reference, Long agentId) {
+        return enregistrer(detteFiscaleId, montant, modePaiement, reference, null, agentId);
+    }
+
+    @Override
+    public Paiement enregistrer(Long detteFiscaleId, BigDecimal montant, String modePaiement, String reference, LocalDate datePaiement, Long agentId) {
         DetteFiscale dette = detteFiscaleRepository.findByIdWithRelations(detteFiscaleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dette fiscale introuvable : id=" + detteFiscaleId));
 
@@ -68,7 +73,7 @@ public class PaiementServiceImpl implements PaiementService {
         Paiement paiement = new Paiement();
         paiement.setDetteFiscale(dette);
         paiement.setMontant(montant);
-        paiement.setDatePaiement(LocalDate.now());
+        paiement.setDatePaiement(datePaiement != null ? datePaiement : LocalDate.now());
         paiement.setModePaiement((modePaiement != null && !modePaiement.isBlank()) ? modePaiement : "ESPECES");
         paiement.setReference((reference != null && !reference.isBlank()) ? reference : "GUICHET DGI");
         Paiement paiementSauvegarde = paiementRepository.save(paiement);

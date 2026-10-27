@@ -44,7 +44,7 @@ public class PaiementController {
     public ResponseEntity<Map<String, Object>> enregistrer(@Valid @RequestBody PaiementDTO dto) {
         Long agentId = securityUtils.obtenirIdUtilisateurCourantOuNull();
         Paiement paiement = paiementService.enregistrer(
-                dto.detteFiscaleId(), dto.montant(), dto.modePaiement(), dto.reference(), agentId);
+                dto.detteFiscaleId(), dto.montant(), dto.modePaiement(), dto.reference(), dto.datePaiement(), agentId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(paiementMapper.versDto(paiement));
     }

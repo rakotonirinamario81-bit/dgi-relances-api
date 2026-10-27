@@ -5,10 +5,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record PaiementDTO(
         @NotNull Long detteFiscaleId,
         @NotNull @Positive BigDecimal montant,
         @NotBlank String modePaiement,
-        String reference
-) {}
+        String reference,
+        LocalDate datePaiement
+) {
+    public PaiementDTO(Long detteFiscaleId, BigDecimal montant, String modePaiement, String reference) {
+        this(detteFiscaleId, montant, modePaiement, reference, null);
+    }
+}

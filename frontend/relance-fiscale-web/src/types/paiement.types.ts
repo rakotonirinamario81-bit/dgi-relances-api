@@ -25,4 +25,5 @@ export interface PaiementDTO {
   montant: number;
   modePaiement: ModePaiement;
   reference?: string;
+  datePaiement?: string;
 }

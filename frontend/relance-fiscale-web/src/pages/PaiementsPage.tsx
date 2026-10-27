@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
+import { useEffect, useState, useMemo, useCallback, type FormEvent } from 'react';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { StatutDetteBadge } from '@/components/metier/StatutDetteBadge';
@@ -53,6 +53,7 @@ export function PaiementsPage({
   // --- FORMULAIRE PAIEMENT INDIVIDUEL ---
   const [detteSelectionneeId, setDetteSelectionneeId] = useState<number | ''>('');
   const [montant, setMontant] = useState<number | ''>('');
+  const [dateEncaissement, setDateEncaissement] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [modePaiement, setModePaiement] = useState<ModePaiement>('ESPECES');
   const [reference, setReference] = useState('');
 
@@ -213,19 +214,20 @@ export function PaiementsPage({
     setSuccesMsg(null);
     setEnCours(true);
     try {
-      const paiementCree = await detteFiscaleService.enregistrerPaiement(
-        Number(detteSelectionneeId),
-        Number(montant),
+      const paiementCree = await paiementService.enregistrer({
+        detteFiscaleId: Number(detteSelectionneeId),
+        montant: Number(montant),
         modePaiement,
-        reference.trim() || undefined
-      );
+        reference: reference.trim() || undefined,
+        datePaiement: dateEncaissement || undefined,
+      });
       setSuccesMsg(`Paiement de ${formaterMontant(Number(montant))} enregistré avec succès.`);
       setDetteSelectionneeId('');
       setMontant('');
       setReference('');
       await chargerDonnees();
       if (paiementCree) {
-        setQuittancesRecentes((prev) => [paiementCree as unknown as Paiement, ...prev]);
+        setQuittancesRecentes((prev) => [paiementCree, ...prev]);
       }
     } catch (err) {
       setErreur(extraireMessageErreur(err));
@@ -244,12 +246,13 @@ export function PaiementsPage({
     setEnCours(true);
     try {
       const promises = dettesSelectionneesIds.map((id) =>
-        detteFiscaleService.enregistrerPaiement(
-          id,
-          montantsParDette[id] || 0,
+        paiementService.enregistrer({
+          detteFiscaleId: id,
+          montant: montantsParDette[id] || 0,
           modePaiement,
-          reference.trim() || undefined
-        )
+          reference: reference.trim() || undefined,
+          datePaiement: dateEncaissement || undefined,
+        })
       );
       const resultats = await Promise.all(promises);
       setSuccesMsg(`Paiement groupé de ${dettesSelectionneesIds.length} créance(s) enregistré (${formaterMontant(totalMontantMultiple)}).`);
@@ -257,7 +260,9 @@ export function PaiementsPage({
       setMontantsParDette({});
       setReference('');
       await chargerDonnees();
-      setQuittancesRecentes((prev) => [...(resultats as unknown as Paiement[]), ...prev]);
+      if (resultats && resultats.length > 0) {
+        setQuittancesRecentes((prev) => [...resultats, ...prev]);
+      }
     } catch (err) {
       setErreur(extraireMessageErreur(err));
     } finally {
@@ -503,12 +508,23 @@ export function PaiementsPage({
       )}
 
       {succesMsg && (
-        <div className="rounded-xl bg-green-50 p-4 text-xs text-green-900 border border-green-200 flex items-start gap-2.5">
-          <span className="text-base">✅</span>
-          <div>
-            <span className="font-bold block">Opération enregistrée :</span>
-            <span>{succesMsg}</span>
+        <div className="rounded-xl bg-green-50 p-4 text-xs text-green-900 border border-green-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-start gap-2.5">
+            <span className="text-base">✅</span>
+            <div>
+              <span className="font-bold block">Opération enregistrée :</span>
+              <span>{succesMsg}</span>
+            </div>
           </div>
+          {quittancesRecentes.length > 0 && (
+            <Button
+              onClick={() => void telechargerQuittance(quittancesRecentes[0].id)}
+              enCours={telechargementEnCoursId === quittancesRecentes[0].id}
+              className="text-xs !bg-emerald-700 hover:!bg-emerald-800 text-white shadow-sm shrink-0"
+            >
+              📄 Télécharger Quittance {quittancesRecentes[0].numeroQuittance || `#${quittancesRecentes[0].id}`}
+            </Button>
+          )}
         </div>
       )}
 
@@ -738,8 +754,19 @@ export function PaiementsPage({
                   )}
                 </div>
 
-                {/* Mode et référence */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Date, Mode et référence */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Date d'encaissement *</label>
+                    <input
+                      type="date"
+                      required
+                      value={dateEncaissement}
+                      onChange={(e) => setDateEncaissement(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs bg-white font-mono focus:border-fiscal-bordeaux focus:ring-1 focus:ring-fiscal-bordeaux"
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">Mode de règlement *</label>
                     <select
@@ -761,7 +788,7 @@ export function PaiementsPage({
                       type="text"
                       value={reference}
                       onChange={(e) => setReference(e.target.value)}
-                      placeholder="N° Chèque, bordereau, TXID..."
+                      placeholder="N° Chèque, TXID..."
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs bg-white focus:border-fiscal-bordeaux focus:ring-1 focus:ring-fiscal-bordeaux"
                     />
                   </div>
@@ -906,8 +933,19 @@ export function PaiementsPage({
                 })}
               </div>
 
-              {/* Mode et référence */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* Date, Mode et référence */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Date d'encaissement *</label>
+                  <input
+                    type="date"
+                    required
+                    value={dateEncaissement}
+                    onChange={(e) => setDateEncaissement(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs bg-white font-mono focus:border-fiscal-bordeaux focus:ring-1 focus:ring-fiscal-bordeaux"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Mode de règlement *</label>
                   <select
