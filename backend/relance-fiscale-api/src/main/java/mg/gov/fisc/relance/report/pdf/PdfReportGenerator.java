@@ -9,7 +9,12 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.barcodes.BarcodeQRCode;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.properties.VerticalAlignment;
 import mg.gov.fisc.relance.dto.response.ResultatCalculPenalitesDTO;
 import mg.gov.fisc.relance.dto.response.SituationFiscalePubliqueDTO;
 import mg.gov.fisc.relance.entity.Contribuable;
@@ -152,19 +157,63 @@ public class PdfReportGenerator {
             Contribuable contribuable = echeance.getContribuable();
             String relanceId = (relance != null && relance.getId() != null) ? String.valueOf(relance.getId()) : String.valueOf(echeance.getId());
 
-            // Header Left
-            document.add(new Paragraph("MINISTÈRE DE L'ÉCONOMIE ET DES FINANCES\n" +
-                    "DIRECTION RÉGIONALE DES IMPÔTS\n" +
-                    "VATOVAVY FITOVINANY\n" +
-                    "SERVICE RÉGIONAL DES ENTREPRISES\n" +
-                    "Hôtel des Impôts Manakara Be")
-                    .setFontSize(8).setMultipliedLeading(1.2f));
+            // ── Chargement des logos DGI et MEF depuis le classpath ──
+            byte[] dgiBytes = null;
+            byte[] mefBytes = null;
+            try (java.io.InputStream dgiStream = getClass().getClassLoader().getResourceAsStream("images/DGI.jpeg");
+                 java.io.InputStream mefStream = getClass().getClassLoader().getResourceAsStream("images/MEF.jpeg")) {
+                if (dgiStream != null) dgiBytes = dgiStream.readAllBytes();
+                if (mefStream != null) mefBytes = mefStream.readAllBytes();
+            } catch (Exception e) {
+                // logos facultatifs — on continue sans eux si indisponibles
+            }
 
-            // Header Right
-            document.add(new Paragraph("Manakara, le " + java.time.LocalDate.now().format(DATE_FR) + "\n" +
-                    "Le Chef du Service Régional des Entreprises\n" +
+            // ── En-tête : table 3 colonnes (DGI+texte | MEF centré | Date+signataire) ──
+            Table headerTable = new Table(UnitValue.createPercentArray(new float[]{35, 30, 35}))
+                    .useAllAvailableWidth()
+                    .setMarginBottom(15);
+
+            // Colonne gauche : Logo DGI + texte institutionnel
+            Cell cellLeft = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .setVerticalAlignment(VerticalAlignment.TOP);
+            if (dgiBytes != null) {
+                ImageData dgiData = ImageDataFactory.create(dgiBytes);
+                Image logoDgi = new Image(dgiData).setWidth(50).setHeight(50);
+                cellLeft.add(logoDgi);
+            }
+            cellLeft.add(new Paragraph("MINIST\u00c8RE DE L'\u00c9CONOMIE ET DES FINANCES\n" +
+                    "DIRECTION R\u00c9GIONALE DES IMP\u00d4TS\n" +
+                    "VATOVAVY FITOVINANY\n" +
+                    "SERVICE R\u00c9GIONAL DES ENTREPRISES\n" +
+                    "H\u00f4tel des Imp\u00f4ts Manakara Be")
+                    .setFontSize(7).setMultipliedLeading(1.2f));
+            headerTable.addCell(cellLeft);
+
+            // Colonne centrale : Logo MEF centré
+            Cell cellCenter = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setVerticalAlignment(VerticalAlignment.TOP);
+            if (mefBytes != null) {
+                ImageData mefData = ImageDataFactory.create(mefBytes);
+                Image logoMef = new Image(mefData).setWidth(72).setHeight(51);
+                cellCenter.add(logoMef);
+            }
+            headerTable.addCell(cellCenter);
+
+            // Colonne droite : Date + signataire
+            Cell cellRight = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .setTextAlignment(TextAlignment.RIGHT)
+                    .setVerticalAlignment(VerticalAlignment.TOP);
+            cellRight.add(new Paragraph("Manakara, le " + java.time.LocalDate.now().format(DATE_FR) + "\n" +
+                    "Le Chef du Service R\u00e9gional des Entreprises\n" +
                     "Vatovavy Fitovinany")
-                    .setTextAlignment(TextAlignment.RIGHT).setFontSize(8).setMarginTop(-80));
+                    .setFontSize(8));
+            headerTable.addCell(cellRight);
+
+            document.add(headerTable);
 
             // Taxpayer Info
             document.add(new Paragraph("À\n" +
