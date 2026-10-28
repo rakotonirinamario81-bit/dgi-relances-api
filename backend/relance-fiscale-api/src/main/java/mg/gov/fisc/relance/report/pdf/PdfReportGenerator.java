@@ -168,49 +168,50 @@ public class PdfReportGenerator {
                 // logos facultatifs — on continue sans eux si indisponibles
             }
 
-            // ── En-tête : table 3 colonnes (DGI+texte | MEF centré | Date+signataire) ──
-            Table headerTable = new Table(UnitValue.createPercentArray(new float[]{35, 30, 35}))
+            // ── En-tête : table 2 colonnes (Logo DGI + hiérarchie gauche | Logo MEF + date droite) ──
+            Table headerTable = new Table(UnitValue.createPercentArray(new float[]{55, 45}))
                     .useAllAvailableWidth()
-                    .setMarginBottom(15);
+                    .setMarginBottom(20);
 
-            // Colonne gauche : Logo DGI + texte institutionnel
+            // ── Colonne GAUCHE : Logo DGI en haut + hiérarchie administrative ──
             Cell cellLeft = new Cell()
                     .setBorder(Border.NO_BORDER)
                     .setVerticalAlignment(VerticalAlignment.TOP);
             if (dgiBytes != null) {
                 ImageData dgiData = ImageDataFactory.create(dgiBytes);
-                Image logoDgi = new Image(dgiData).setWidth(50).setHeight(50);
+                Image logoDgi = new Image(dgiData).setWidth(55).setHeight(55);
                 cellLeft.add(logoDgi);
             }
-            cellLeft.add(new Paragraph("MINIST\u00c8RE DE L'\u00c9CONOMIE ET DES FINANCES\n" +
+            cellLeft.add(new Paragraph(
+                    "MINIST\u00c8RE DE L'\u00c9CONOMIE ET DES FINANCES\n" +
+                    "SECR\u00c9TARIAT G\u00c9N\u00c9RAL\n" +
+                    "DIRECTION G\u00c9N\u00c9RALE DES IMP\u00d4TS\n" +
+                    "DIRECTION TECHNIQUE\n" +
                     "DIRECTION R\u00c9GIONALE DES IMP\u00d4TS\n" +
-                    "VATOVAVY FITOVINANY\n" +
                     "SERVICE R\u00c9GIONAL DES ENTREPRISES\n" +
-                    "H\u00f4tel des Imp\u00f4ts Manakara Be")
-                    .setFontSize(7).setMultipliedLeading(1.2f));
+                    "VATOVAVY FITOVINANY")
+                    .setFontSize(8).setMultipliedLeading(1.5f)
+                    .setMarginTop(5));
             headerTable.addCell(cellLeft);
 
-            // Colonne centrale : Logo MEF centré
-            Cell cellCenter = new Cell()
-                    .setBorder(Border.NO_BORDER)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setVerticalAlignment(VerticalAlignment.TOP);
-            if (mefBytes != null) {
-                ImageData mefData = ImageDataFactory.create(mefBytes);
-                Image logoMef = new Image(mefData).setWidth(72).setHeight(51);
-                cellCenter.add(logoMef);
-            }
-            headerTable.addCell(cellCenter);
-
-            // Colonne droite : Date + signataire
+            // ── Colonne DROITE : Logo MEF en haut (aligné droite) + date + signataire ──
             Cell cellRight = new Cell()
                     .setBorder(Border.NO_BORDER)
                     .setTextAlignment(TextAlignment.RIGHT)
                     .setVerticalAlignment(VerticalAlignment.TOP);
-            cellRight.add(new Paragraph("Manakara, le " + java.time.LocalDate.now().format(DATE_FR) + "\n" +
+            if (mefBytes != null) {
+                ImageData mefData = ImageDataFactory.create(mefBytes);
+                Image logoMef = new Image(mefData)
+                        .setWidth(65).setHeight(46)
+                        .setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.RIGHT);
+                cellRight.add(logoMef);
+            }
+            cellRight.add(new Paragraph(
+                    "Manakara, le " + java.time.LocalDate.now().format(DATE_FR) + "\n" +
                     "Le Chef du Service R\u00e9gional des Entreprises\n" +
                     "Vatovavy Fitovinany")
-                    .setFontSize(8));
+                    .setFontSize(8)
+                    .setMarginTop(5));
             headerTable.addCell(cellRight);
 
             document.add(headerTable);
