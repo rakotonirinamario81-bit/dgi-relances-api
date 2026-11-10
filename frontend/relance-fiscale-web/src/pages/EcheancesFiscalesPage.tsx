@@ -87,6 +87,12 @@ export function EcheancesFiscalesPage() {
     };
   }, [echeances, defaillants]);
 
+  // Compteur du registre toutes échéances (hors non-déposés)
+  const nbEcheancesRegistre = useMemo(
+    () => echeances.filter((e) => !(e.enRetard === true && e.statut !== 'DEPOT_EFFECTUE')).length,
+    [echeances]
+  );
+
   // Liste unique des impôts pour le filtre
   const listeCodesImpots = useMemo(() => {
     const source = ongletActif === 'defaillants' ? defaillants : echeances;
@@ -122,6 +128,13 @@ export function EcheancesFiscalesPage() {
         if (filtreRetard === 'MOINS_30' && retard >= 30) return false;
         if (filtreRetard === '30_60' && (retard < 30 || retard > 60)) return false;
         if (filtreRetard === 'PLUS_60' && retard <= 60) return false;
+      }
+
+      // Registre toutes les échéances : exclure les "Non déposé"
+      // On ne garde que : En attente | Dépôt tardif | Déposé
+      if (ongletActif === 'toutes') {
+        const estNonDepose = e.enRetard === true && e.statut !== 'DEPOT_EFFECTUE';
+        if (estNonDepose) return false;
       }
 
       return true;
@@ -597,7 +610,7 @@ export function EcheancesFiscalesPage() {
         >
           <span>📋 Registre de Toutes les Échéances Légales</span>
           <span className="rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-xs font-mono">
-            {echeances.length}
+            {nbEcheancesRegistre}
           </span>
         </button>
       </div>
