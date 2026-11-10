@@ -168,8 +168,8 @@ public class PdfReportGenerator {
                 // logos facultatifs — on continue sans eux si indisponibles
             }
 
-            // ── En-tête : table 2 colonnes (Logo DGI + hiérarchie gauche | Logo MEF + date droite) ──
-            Table headerTable = new Table(UnitValue.createPercentArray(new float[]{55, 45}))
+            // ── En-tête : table 3 colonnes (DGI+texte gauche | MEF centré | date+signataire droite) ──
+            Table headerTable = new Table(UnitValue.createPercentArray(new float[]{45, 20, 35}))
                     .useAllAvailableWidth()
                     .setMarginBottom(20);
 
@@ -194,24 +194,30 @@ public class PdfReportGenerator {
                     .setMarginTop(5));
             headerTable.addCell(cellLeft);
 
-            // ── Colonne DROITE : Logo MEF en haut (aligné droite) + date + signataire ──
-            Cell cellRight = new Cell()
+            // ── Colonne CENTRALE : Logo MEF centré ──
+            Cell cellCenter = new Cell()
                     .setBorder(Border.NO_BORDER)
-                    .setTextAlignment(TextAlignment.RIGHT)
+                    .setTextAlignment(TextAlignment.CENTER)
                     .setVerticalAlignment(VerticalAlignment.TOP);
             if (mefBytes != null) {
                 ImageData mefData = ImageDataFactory.create(mefBytes);
                 Image logoMef = new Image(mefData)
                         .setWidth(65).setHeight(46)
-                        .setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.RIGHT);
-                cellRight.add(logoMef);
+                        .setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
+                cellCenter.add(logoMef);
             }
+            headerTable.addCell(cellCenter);
+
+            // ── Colonne DROITE : Date + signataire aligné à droite ──
+            Cell cellRight = new Cell()
+                    .setBorder(Border.NO_BORDER)
+                    .setTextAlignment(TextAlignment.RIGHT)
+                    .setVerticalAlignment(VerticalAlignment.TOP);
             cellRight.add(new Paragraph(
                     "Manakara, le " + java.time.LocalDate.now().format(DATE_FR) + "\n" +
                     "Le Chef du Service R\u00e9gional des Entreprises\n" +
                     "Vatovavy Fitovinany")
-                    .setFontSize(8)
-                    .setMarginTop(5));
+                    .setFontSize(8));
             headerTable.addCell(cellRight);
 
             document.add(headerTable);
