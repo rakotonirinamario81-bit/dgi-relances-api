@@ -23,6 +23,7 @@ interface ConfigurationSysteme extends ConfigurationSystemeDTO {
   smtpHost: string;
   smtpPort: number;
   smtpUser: string;
+  smtpPassword?: string;
   smtpExpediteurNom: string;
   smtpStatut: string;
 
@@ -99,6 +100,7 @@ export function ParametresPage() {
     smtpHost: CONFIG_DEFAUT.smtpHost ?? 'smtp-relay.brevo.com',
     smtpPort: CONFIG_DEFAUT.smtpPort ?? 587,
     smtpUser: CONFIG_DEFAUT.smtpUser ?? 'rakotonirinamario81@gmail.com',
+    smtpPassword: CONFIG_DEFAUT.smtpPassword ?? '',
     smtpExpediteurNom: CONFIG_DEFAUT.smtpExpediteurNom ?? 'Direction Régionale des Impôts - Vatovavy Fitovinany',
     smtpStatut: 'ACTIF',
 
@@ -450,6 +452,18 @@ export function ParametresPage() {
                 onChange={(e) => setConfig({ ...config, smtpUser: e.target.value })}
                 className="w-full rounded-xl border border-gray-300 font-mono px-3 py-2 text-xs focus:border-fiscal-bordeaux focus:outline-none"
               />
+            </div>
+
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Mot de passe SMTP / Clé API d'envoi :</label>
+              <input
+                type="password"
+                placeholder="••••••••••••••••"
+                value={config.smtpPassword ?? ''}
+                onChange={(e) => setConfig({ ...config, smtpPassword: e.target.value })}
+                className="w-full rounded-xl border border-gray-300 font-mono px-3 py-2 text-xs focus:border-fiscal-bordeaux focus:outline-none"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Clé SMTP Brevo (xsmtpsib-...) ou Mot de passe d'application Google (16 lettres).</p>
             </div>
 
             <div>

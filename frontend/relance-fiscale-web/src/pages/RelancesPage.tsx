@@ -237,8 +237,11 @@ export function RelancesPage() {
         objetEmail: objetEmail.trim() || undefined,
       });
 
-      setSucces(`Notification de relance transmise avec succès par Courrier Électronique au contribuable.`);
+      // Laisser le temps au worker asynchrone d'acheminer le courrier
+      await new Promise((resolve) => setTimeout(resolve, 800));
       await Promise.all([recharger(), chargerDettes()]);
+
+      setSucces(`Notification de relance traitée par Courrier Électronique.`);
     } catch (err) {
       setErreur(extraireMessageErreur(err));
     } finally {

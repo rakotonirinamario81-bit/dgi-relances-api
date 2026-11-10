@@ -8,28 +8,39 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 @Service
 public class EmailSender implements EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailSender.class);
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender defaultMailSender;
     private final String expediteurParDefaut;
-    private final String mailUsername;
+    private final String configuredMailUsername;
+    private final String configuredMailPassword;
+    private final String configuredMailHost;
+    private final int configuredMailPort;
     private final ConfigurationSystemeService configurationSystemeService;
 
-    public EmailSender(JavaMailSender mailSender,
+    public EmailSender(JavaMailSender defaultMailSender,
                        @Value("${relance.email.expediteur:}") String expediteurParDefaut,
-                       @Value("${spring.mail.username:}") String mailUsername,
+                       @Value("${spring.mail.username:}") String configuredMailUsername,
+                       @Value("${spring.mail.password:}") String configuredMailPassword,
+                       @Value("${spring.mail.host:smtp-relay.brevo.com}") String configuredMailHost,
+                       @Value("${spring.mail.port:587}") int configuredMailPort,
                        ConfigurationSystemeService configurationSystemeService) {
-        this.mailSender = mailSender;
+        this.defaultMailSender = defaultMailSender;
         this.expediteurParDefaut = expediteurParDefaut;
-        this.mailUsername = mailUsername;
+        this.configuredMailUsername = configuredMailUsername;
+        this.configuredMailPassword = configuredMailPassword;
+        this.configuredMailHost = configuredMailHost;
+        this.configuredMailPort = configuredMailPort;
         this.configurationSystemeService = configurationSystemeService;
     }
 
@@ -39,32 +50,48 @@ public class EmailSender implements EmailService {
         if (destinataire == null || destinataire.isBlank()) {
             return ResultatEnvoiEmail.echec("Adresse e-mail manquante");
         }
-        if (mailUsername == null || mailUsername.isBlank()) {
-            log.warn("⚠️ Paramètre spring.mail.username non configuré dans application.yml. Envoi d'email ignoré.");
-            return ResultatEnvoiEmail.echec("Serveur mail non configuré (veuillez renseigner MAIL_USERNAME et MAIL_PASSWORD)");
+
+        // Récupération dynamique des paramètres SMTP (priorité base de données, puis application.yml)
+        String host = configurationSystemeService.getValeur("smtp.host", configuredMailHost);
+        int port = configuredMailPort;
+        try {
+            port = Integer.parseInt(configurationSystemeService.getValeur("smtp.port", String.valueOf(configuredMailPort)));
+        } catch (Exception ignored) {}
+
+        String emailExpediteur = configurationSystemeService.getValeur("smtp.expediteur.email", configuredMailUsername);
+        if (emailExpediteur == null || emailExpediteur.isBlank()) {
+            emailExpediteur = (configuredMailUsername != null && !configuredMailUsername.isBlank())
+                    ? configuredMailUsername
+                    : "rakotonirinamario81@gmail.com";
+        }
+
+        String password = configurationSystemeService.getValeur("smtp.password", configuredMailPassword);
+        if (password == null || password.isBlank()) {
+            password = configuredMailPassword;
+        }
+
+        if (password == null || password.isBlank()) {
+            log.warn("⚠️ Paramètre de mot de passe SMTP non configuré pour '{}'. Envoi direct annulé.", emailExpediteur);
+            return ResultatEnvoiEmail.echec("Serveur SMTP non authentifié : aucun mot de passe configuré pour "
+                    + emailExpediteur + ". Veuillez renseigner le mot de passe SMTP dans Paramètres > Passerelle Email ou via MAIL_PASSWORD.");
         }
 
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            // Toujours en mode multipart pour supporter le double format texte brut + HTML (et pièce jointe éventuelle)
+            JavaMailSender sender = creerSenderDynamique(host, port, emailExpediteur, password);
+            MimeMessage mimeMessage = sender.createMimeMessage();
+
+            // Toujours en mode multipart pour supporter texte + HTML + pièces jointes éventuelles
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
 
-            // Libellé officiel dynamique (ex: Direction Régionale des Impôts - Vatovavy Fitovinany)
             String nomExpediteur = configurationSystemeService.getNomExpediteur();
-            String emailExpediteur = configurationSystemeService.getValeur("smtp.expediteur.email", mailUsername);
-            if (emailExpediteur == null || emailExpediteur.isBlank()) {
-                emailExpediteur = mailUsername;
-            }
-
             String fromAddress = (nomExpediteur != null && !nomExpediteur.isBlank())
                     ? String.format("%s <%s>", nomExpediteur, emailExpediteur)
-                    : (expediteurParDefaut != null && !expediteurParDefaut.isBlank() ? expediteurParDefaut : mailUsername);
+                    : (expediteurParDefaut != null && !expediteurParDefaut.isBlank() ? expediteurParDefaut : emailExpediteur);
 
             helper.setFrom(fromAddress);
             helper.setTo(destinataire.trim());
             helper.setSubject(objet);
 
-            // Mise en forme HTML élégante si le texte est brut
             String htmlContent = formaterEnHtml(contenu);
             helper.setText(contenu, htmlContent);
 
@@ -73,16 +100,33 @@ public class EmailSender implements EmailService {
                 helper.addAttachment(nomFichier, new ByteArrayResource(pieceJointePdf));
             }
 
-            mailSender.send(mimeMessage);
+            sender.send(mimeMessage);
             log.info("✓ E-mail de relance officiel envoyé avec succès depuis '{}' vers : {}", fromAddress, destinataire);
             return ResultatEnvoiEmail.ok();
         } catch (MessagingException e) {
             log.error("❌ Échec envoi e-mail vers {} : {}", destinataire, e.getMessage());
-            return ResultatEnvoiEmail.echec("Erreur SMTP : " + e.getMessage());
+            return ResultatEnvoiEmail.echec("Erreur SMTP (" + host + ") : " + e.getMessage());
         } catch (Exception e) {
             log.error("❌ Erreur inattendue envoi e-mail vers {} : {}", destinataire, e.getMessage(), e);
             return ResultatEnvoiEmail.echec(e.getMessage());
         }
+    }
+
+    private JavaMailSender creerSenderDynamique(String host, int port, String username, String password) {
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(host != null && !host.isBlank() ? host : "smtp-relay.brevo.com");
+        sender.setPort(port > 0 ? port : 587);
+        sender.setUsername(username);
+        sender.setPassword(password);
+
+        Properties props = sender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
+        props.put("mail.smtp.writetimeout", "10000");
+        return sender;
     }
 
     private String formaterEnHtml(String texteBrut) {

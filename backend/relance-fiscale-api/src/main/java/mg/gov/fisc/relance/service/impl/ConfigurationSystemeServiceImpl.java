@@ -49,6 +49,7 @@ public class ConfigurationSystemeServiceImpl implements ConfigurationSystemeServ
                 getValeur("smtp.host", "smtp-relay.brevo.com"),
                 Integer.parseInt(getValeur("smtp.port", "587")),
                 getValeur("smtp.expediteur.email", "rakotonirinamario81@gmail.com"),
+                getValeur("smtp.password", ""),
                 getValeur("smtp.expediteur.nom", "Direction Régionale des Impôts - Vatovavy Fitovinany"),
                 getValeur("smtp.statut", "ACTIF"),
                 getValeur("relance.ville.emission", "Manakara"),
@@ -71,6 +72,9 @@ public class ConfigurationSystemeServiceImpl implements ConfigurationSystemeServ
         if (dto.smtpHost() != null) setValeur("smtp.host", dto.smtpHost());
         if (dto.smtpPort() != null) setValeur("smtp.port", String.valueOf(dto.smtpPort()));
         if (dto.smtpUser() != null) setValeur("smtp.expediteur.email", dto.smtpUser());
+        if (dto.smtpPassword() != null && !dto.smtpPassword().isBlank()) {
+            setValeur("smtp.password", dto.smtpPassword());
+        }
         if (dto.smtpExpediteurNom() != null && !dto.smtpExpediteurNom().isBlank()) {
             setValeur("smtp.expediteur.nom", dto.smtpExpediteurNom());
             setValeur("relance.service.nom", dto.smtpExpediteurNom());

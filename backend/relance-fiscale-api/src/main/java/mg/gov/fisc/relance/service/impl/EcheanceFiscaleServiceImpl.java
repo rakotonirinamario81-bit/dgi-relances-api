@@ -138,7 +138,7 @@ public class EcheanceFiscaleServiceImpl implements EcheanceFiscaleService {
 
         relance.setContenuFinal(texteCorps);
 
-        Relance relanceSauvegardee = relanceRepository.save(relance);
+        Relance relanceSauvegardee = relanceRepository.saveAndFlush(relance);
 
         echeance.setStatut(StatutEcheance.RELANCE);
         echeanceFiscaleRepository.save(echeance);

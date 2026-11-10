@@ -201,6 +201,7 @@ export function EcheancesFiscalesPage() {
       };
       const res = await calendrierFiscalService.relancerDefaillant(dto);
       setMessageSuccesRelance(res.message);
+      await new Promise((resolve) => setTimeout(resolve, 600));
       await chargerDonnees();
       setTimeout(() => {
         setEcheanceARelancer(null);

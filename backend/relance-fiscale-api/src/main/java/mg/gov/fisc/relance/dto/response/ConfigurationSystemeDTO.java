@@ -4,6 +4,7 @@ public record ConfigurationSystemeDTO(
         String smtpHost,
         Integer smtpPort,
         String smtpUser,
+        String smtpPassword,
         String smtpExpediteurNom,
         String smtpStatut,
         String villeEmission,

@@ -2,6 +2,7 @@ export interface ConfigurationSystemeDTO {
   smtpHost?: string;
   smtpPort?: number;
   smtpUser?: string;
+  smtpPassword?: string;
   smtpExpediteurNom?: string;
   smtpStatut?: string;
   villeEmission?: string;

@@ -87,7 +87,7 @@ public class RelanceServiceImpl implements RelanceService {
             relance.setDocumentPdfGenere(true);
         }
 
-        relanceRepository.save(relance);
+        relanceRepository.saveAndFlush(relance);
         notificationDispatchService.envoyer(relance);
 
         dette.setNiveauRelanceCourant(niveauCible);
@@ -167,7 +167,7 @@ public class RelanceServiceImpl implements RelanceService {
         // Joindre systématiquement l'avis officiel PDF pour toute relance par Courrier Électronique
         relance.setDocumentPdfGenere(true);
 
-        relanceRepository.save(relance);
+        relanceRepository.saveAndFlush(relance);
         notificationDispatchService.envoyer(relance);
 
         dette.setNombreRelancesEnvoyees(dette.getNombreRelancesEnvoyees() + 1);
@@ -239,7 +239,7 @@ public class RelanceServiceImpl implements RelanceService {
             relance.setContenuFinal(relanceMessageGenerateur.genererCorpsEmail(echeance));
         }
 
-        relanceRepository.save(relance);
+        relanceRepository.saveAndFlush(relance);
         notificationDispatchService.envoyer(relance);
 
         auditLogService.enregistrer("EcheanceFiscale", echeance.getId(), "RELANCE_NON_DEPOT", null, "canal=EMAIL");
@@ -318,7 +318,7 @@ public class RelanceServiceImpl implements RelanceService {
         // Toute relance par courrier électronique comporte l'avis PDF certifié
         relance.setDocumentPdfGenere(true);
 
-        relanceRepository.save(relance);
+        relanceRepository.saveAndFlush(relance);
         notificationDispatchService.envoyer(relance);
         return relance;
     }

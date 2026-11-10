@@ -4,14 +4,29 @@ import mg.gov.fisc.relance.entity.Relance;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface RelanceRepository extends JpaRepository<Relance, Long>, JpaSpecificationExecutor<Relance> {
 
-    List<Relance> findByDetteFiscaleId(Long detteFiscaleId);
+    @Query("SELECT r FROM Relance r " +
+           "LEFT JOIN FETCH r.detteFiscale df " +
+           "LEFT JOIN FETCH df.contribuable c1 " +
+           "LEFT JOIN FETCH r.echeanceFiscale ef " +
+           "LEFT JOIN FETCH ef.contribuable c2 " +
+           "WHERE r.detteFiscale.id = :detteFiscaleId " +
+           "ORDER BY r.id DESC")
+    List<Relance> findByDetteFiscaleId(@Param("detteFiscaleId") Long detteFiscaleId);
 
-    List<Relance> findByEcheanceFiscaleId(Long echeanceFiscaleId);
+    @Query("SELECT r FROM Relance r " +
+           "LEFT JOIN FETCH r.detteFiscale df " +
+           "LEFT JOIN FETCH df.contribuable c1 " +
+           "LEFT JOIN FETCH r.echeanceFiscale ef " +
+           "LEFT JOIN FETCH ef.contribuable c2 " +
+           "WHERE r.echeanceFiscale.id = :echeanceFiscaleId " +
+           "ORDER BY r.id DESC")
+    List<Relance> findByEcheanceFiscaleId(@Param("echeanceFiscaleId") Long echeanceFiscaleId);
 
     List<Relance> findByCampagneId(Long campagneId);
 
