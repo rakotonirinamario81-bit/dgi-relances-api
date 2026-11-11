@@ -86,9 +86,10 @@ export function CampagnesRelancePage() {
     setCreationEnCours(true);
     try {
       const nouvelle = await campagneRelanceService.creer(dto);
-      setCampagnes((prev) => [nouvelle, ...prev]);
+      setCampagnes((prev) => [nouvelle, ...prev.filter((c) => c.id !== nouvelle.id)]);
       setModalCreationOuverte(false);
       setSucces(`La campagne "${nouvelle.nom}" a été créée avec succès.`);
+      void chargerCampagnes();
     } catch (err) {
       setErreur(extraireMessageErreur(err));
     } finally {
@@ -107,6 +108,7 @@ export function CampagnesRelancePage() {
         setCampagneSelectionnee(lancee);
       }
       setSucces(`La campagne "${lancee.nom}" a été lancée. Les relances ciblées ont été expédiées.`);
+      void chargerCampagnes();
     } catch (err) {
       setErreur(extraireMessageErreur(err));
     } finally {

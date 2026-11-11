@@ -3,6 +3,7 @@ package mg.gov.fisc.relance.mapper;
 import mg.gov.fisc.relance.dto.request.CampagneRelanceDTO;
 import mg.gov.fisc.relance.dto.response.CampagneResponseDTO;
 import mg.gov.fisc.relance.entity.*;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,24 +26,51 @@ public class CampagneRelanceMapper {
     }
 
     public CampagneResponseDTO versDto(CampagneRelance c) {
-        Long impotId = c.getImpotCible() != null ? c.getImpotCible().getId() : null;
-        String impotCode = c.getImpotCible() != null ? c.getImpotCible().getCode() : null;
-        String impotLibelle = c.getImpotCible() != null ? c.getImpotCible().getLibelle() : null;
+        if (c == null) {
+            return null;
+        }
 
-        Long modeleId = c.getModeleMessage() != null ? c.getModeleMessage().getId() : null;
-        String modeleNom = c.getModeleMessage() != null ? c.getModeleMessage().getNom() : null;
-        String canal = (c.getModeleMessage() != null && c.getModeleMessage().getCanal() != null)
-                ? c.getModeleMessage().getCanal().name() : null;
+        Long impotId = null;
+        String impotCode = null;
+        String impotLibelle = null;
+        try {
+            if (c.getImpotCible() != null) {
+                impotId = c.getImpotCible().getId();
+                impotCode = c.getImpotCible().getCode();
+                impotLibelle = c.getImpotCible().getLibelle();
+            }
+        } catch (Exception ignored) {}
 
-        String createurNom = c.getCreateur() != null ? c.getCreateur().getNom() : null;
+        Long modeleId = null;
+        String modeleNom = null;
+        String canal = null;
+        try {
+            if (c.getModeleMessage() != null) {
+                modeleId = c.getModeleMessage().getId();
+                modeleNom = c.getModeleMessage().getNom();
+                if (c.getModeleMessage().getCanal() != null) {
+                    canal = c.getModeleMessage().getCanal().name();
+                }
+            }
+        } catch (Exception ignored) {}
 
-        long envoyees = c.getRelances() != null
-                ? c.getRelances().stream().filter(r -> r.getStatutEnvoi() == Relance.StatutEnvoi.ENVOYE).count()
-                : 0L;
-        long echecs = c.getRelances() != null
-                ? c.getRelances().stream().filter(r -> r.getStatutEnvoi() == Relance.StatutEnvoi.ECHEC).count()
-                : 0L;
-        long total = c.getRelances() != null ? c.getRelances().size() : 0L;
+        String createurNom = null;
+        try {
+            if (c.getCreateur() != null) {
+                createurNom = c.getCreateur().getNom();
+            }
+        } catch (Exception ignored) {}
+
+        long envoyees = 0L;
+        long echecs = 0L;
+        long total = 0L;
+        try {
+            if (c.getRelances() != null && Hibernate.isInitialized(c.getRelances())) {
+                envoyees = c.getRelances().stream().filter(r -> r.getStatutEnvoi() == Relance.StatutEnvoi.ENVOYE).count();
+                echecs = c.getRelances().stream().filter(r -> r.getStatutEnvoi() == Relance.StatutEnvoi.ECHEC).count();
+                total = c.getRelances().size();
+            }
+        } catch (Exception ignored) {}
         double taux = total > 0 ? (envoyees * 100.0) / total : 0.0;
 
         return new CampagneResponseDTO(

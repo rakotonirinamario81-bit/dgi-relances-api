@@ -10,6 +10,7 @@ import mg.gov.fisc.relance.service.CampagneRelanceService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/campagnes")
 @PreAuthorize("hasAnyRole('ADMIN', 'RESPONSABLE_RECOUVREMENT', 'AGENT_RECOUVREMENT')")
+@Transactional(readOnly = true)
 public class CampagneRelanceController {
 
     private final CampagneRelanceService campagneRelanceService;
@@ -56,6 +58,7 @@ public class CampagneRelanceController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<CampagneResponseDTO> creer(@RequestBody CampagneRelanceDTO dto) {
         Long userId = securityUtils.obtenirIdUtilisateurCourantOuNull();
         CampagneRelance creee = campagneRelanceService.creerDepuisDto(dto, userId);
@@ -63,6 +66,7 @@ public class CampagneRelanceController {
     }
 
     @PostMapping("/{id}/lancer")
+    @Transactional
     public ResponseEntity<CampagneResponseDTO> lancer(@PathVariable Long id) {
         return ResponseEntity.ok(campagneRelanceMapper.versDto(campagneRelanceService.lancer(id)));
     }

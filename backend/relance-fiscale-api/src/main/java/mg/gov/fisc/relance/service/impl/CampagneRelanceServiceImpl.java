@@ -11,7 +11,6 @@ import mg.gov.fisc.relance.service.RelanceService;
 import mg.gov.fisc.relance.audit.AuditLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +58,7 @@ public class CampagneRelanceServiceImpl implements CampagneRelanceService {
         campagne.setStatut(CampagneRelance.StatutCampagne.PLANIFIEE);
         CampagneRelance sauvegardee = campagneRelanceRepository.save(campagne);
         auditLogService.enregistrer("CampagneRelance", sauvegardee.getId(), "CREATION", null, sauvegardee.getNom());
-        return sauvegardee;
+        return campagneRelanceRepository.findByIdWithRelations(sauvegardee.getId()).orElse(sauvegardee);
     }
 
     @Override
@@ -107,7 +106,11 @@ public class CampagneRelanceServiceImpl implements CampagneRelanceService {
         for (DetteFiscale dette : cibles) {
             try {
                 Long agentId = campagne.getCreateur() != null ? campagne.getCreateur().getId() : null;
-                relanceService.envoyerRelanceManuelle(dette.getId(), campagne.getModeleMessage().getId(), agentId);
+                Relance relance = relanceService.envoyerRelanceManuelle(dette.getId(), campagne.getModeleMessage().getId(), agentId);
+                if (relance != null) {
+                    relance.setCampagne(campagne);
+                    campagne.getRelances().add(relance);
+                }
             } catch (Exception e) {
                 log.error("Échec envoi campagne pour dette id={} : {}", dette.getId(), e.getMessage());
             }
@@ -117,7 +120,7 @@ public class CampagneRelanceServiceImpl implements CampagneRelanceService {
         CampagneRelance sauvegardee = campagneRelanceRepository.save(campagne);
         auditLogService.enregistrer("CampagneRelance", campagne.getId(), "LANCEMENT",
                 null, cibles.size() + " contribuable(s) ciblé(s)");
-        return sauvegardee;
+        return campagneRelanceRepository.findByIdWithRelations(sauvegardee.getId()).orElse(sauvegardee);
     }
 
     @Override
@@ -146,14 +149,14 @@ public class CampagneRelanceServiceImpl implements CampagneRelanceService {
     @Override
     @Transactional(readOnly = true)
     public CampagneRelance obtenirParId(Long id) {
-        return campagneRelanceRepository.findById(id)
+        return campagneRelanceRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Campagne introuvable : id=" + id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CampagneRelance> listerToutes() {
-        return campagneRelanceRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        return campagneRelanceRepository.findAllWithRelations();
     }
 
     @Override
