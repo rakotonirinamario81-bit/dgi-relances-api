@@ -46,10 +46,10 @@ public class ConfigurationSystemeServiceImpl implements ConfigurationSystemeServ
     @Transactional(readOnly = true)
     public ConfigurationSystemeDTO getConfiguration() {
         return new ConfigurationSystemeDTO(
-                getValeur("smtp.host", "smtp-relay.brevo.com"),
+                getValeur("smtp.host", "smtp.gmail.com"),
                 Integer.parseInt(getValeur("smtp.port", "587")),
                 getValeur("smtp.expediteur.email", "rakotonirinamario81@gmail.com"),
-                getValeur("smtp.password", ""),
+                getValeur("smtp.password", "ueuxolkkovuojcjr"),
                 getValeur("smtp.expediteur.nom", "Direction Régionale des Impôts - Vatovavy Fitovinany"),
                 getValeur("smtp.statut", "ACTIF"),
                 getValeur("relance.ville.emission", "Manakara"),

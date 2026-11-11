@@ -17,10 +17,10 @@ public class MailConfig {
     @Value("${spring.mail.port:587}")
     private int port;
 
-    @Value("${spring.mail.username:}")
+    @Value("${spring.mail.username:rakotonirinamario81@gmail.com}")
     private String username;
 
-    @Value("${spring.mail.password:}")
+    @Value("${spring.mail.password:ueuxolkkovuojcjr}")
     private String password;
 
     @Bean
@@ -29,12 +29,15 @@ public class MailConfig {
         sender.setHost(host);
         sender.setPort(port);
         sender.setUsername(username);
-        sender.setPassword(password);
+        sender.setPassword(password != null ? password.trim().replace(" ", "") : null);
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+        props.put("mail.smtp.ssl.trust", host != null && !host.isBlank() ? host : "smtp.gmail.com");
         return sender;
     }
 }

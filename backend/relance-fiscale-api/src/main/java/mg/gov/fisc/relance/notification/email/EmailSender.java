@@ -30,9 +30,9 @@ public class EmailSender implements EmailService {
 
     public EmailSender(JavaMailSender defaultMailSender,
                        @Value("${relance.email.expediteur:}") String expediteurParDefaut,
-                       @Value("${spring.mail.username:}") String configuredMailUsername,
-                       @Value("${spring.mail.password:}") String configuredMailPassword,
-                       @Value("${spring.mail.host:smtp-relay.brevo.com}") String configuredMailHost,
+                       @Value("${spring.mail.username:rakotonirinamario81@gmail.com}") String configuredMailUsername,
+                       @Value("${spring.mail.password:ueuxolkkovuojcjr}") String configuredMailPassword,
+                       @Value("${spring.mail.host:smtp.gmail.com}") String configuredMailHost,
                        @Value("${spring.mail.port:587}") int configuredMailPort,
                        ConfigurationSystemeService configurationSystemeService) {
         this.defaultMailSender = defaultMailSender;
@@ -68,6 +68,17 @@ public class EmailSender implements EmailService {
         String password = configurationSystemeService.getValeur("smtp.password", configuredMailPassword);
         if (password == null || password.isBlank()) {
             password = configuredMailPassword;
+        }
+
+        // Nettoyage des espaces éventuels dans le mot de passe d'application (ex: "ueux olkk ovuoj cjr" -> "ueuxolkkovuojcjr")
+        if (password != null) {
+            password = password.trim().replace(" ", "");
+        }
+
+        // Auto-correction : Si l'adresse est un compte Gmail (@gmail.com) mais que l'hôte pointe encore vers Brevo, basculer vers smtp.gmail.com
+        if (emailExpediteur.toLowerCase().endsWith("@gmail.com") && (host == null || host.contains("brevo") || host.isBlank())) {
+            host = "smtp.gmail.com";
+            port = 587;
         }
 
         if (password == null || password.isBlank()) {
@@ -123,6 +134,9 @@ public class EmailSender implements EmailService {
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+        props.put("mail.smtp.ssl.trust", host != null && !host.isBlank() ? host : "smtp.gmail.com");
         props.put("mail.smtp.connectiontimeout", "10000");
         props.put("mail.smtp.timeout", "10000");
         props.put("mail.smtp.writetimeout", "10000");

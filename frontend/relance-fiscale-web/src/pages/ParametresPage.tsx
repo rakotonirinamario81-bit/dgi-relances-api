@@ -97,10 +97,10 @@ export function ParametresPage() {
     brevoSoldeSms: CONFIG_DEFAUT.brevoSoldeSms ?? 0,
     brevoStatut: 'REQUIS_CREDITS',
 
-    smtpHost: CONFIG_DEFAUT.smtpHost ?? 'smtp-relay.brevo.com',
+    smtpHost: CONFIG_DEFAUT.smtpHost ?? 'smtp.gmail.com',
     smtpPort: CONFIG_DEFAUT.smtpPort ?? 587,
     smtpUser: CONFIG_DEFAUT.smtpUser ?? 'rakotonirinamario81@gmail.com',
-    smtpPassword: CONFIG_DEFAUT.smtpPassword ?? '',
+    smtpPassword: CONFIG_DEFAUT.smtpPassword ?? 'ueuxolkkovuojcjr',
     smtpExpediteurNom: CONFIG_DEFAUT.smtpExpediteurNom ?? 'Direction Régionale des Impôts - Vatovavy Fitovinany',
     smtpStatut: 'ACTIF',
 
