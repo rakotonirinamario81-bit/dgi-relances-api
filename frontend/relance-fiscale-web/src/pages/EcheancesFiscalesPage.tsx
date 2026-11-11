@@ -2,9 +2,12 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { Table, type ColonneTable } from '@/components/common/Table';
+import { RelanceTimeline } from '@/components/metier/RelanceTimeline';
 import { calendrierFiscalService } from '@/services/calendrierFiscalService';
+import { relanceService } from '@/services/relanceService';
 import { extraireMessageErreur } from '@/services/apiClient';
 import type { DeclarationFiscaleDTO, EcheanceFiscale, RelanceEcheanceDTO } from '@/types/calendrierFiscal.types';
+import type { Relance } from '@/types/relance.types';
 import { formaterDateFr, formaterMontant } from '@/utils/formatDate';
 
 function getInitiales(nom: string): string {
@@ -48,6 +51,11 @@ export function EcheancesFiscalesPage() {
   const [messagePersonnalise, setMessagePersonnalise] = useState<string>('');
   const [relanceEnCours, setRelanceEnCours] = useState(false);
   const [messageSuccesRelance, setMessageSuccesRelance] = useState<string | null>(null);
+
+  // Modal Historique des Relances Non-Dépôt
+  const [echeanceHistorique, setEcheanceHistorique] = useState<EcheanceFiscale | null>(null);
+  const [relancesEcheance, setRelancesEcheance] = useState<Relance[]>([]);
+  const [chargementHistoriqueEcheance, setChargementHistoriqueEcheance] = useState(false);
 
   const chargerDonnees = useCallback(async () => {
     setChargement(true);
@@ -230,6 +238,20 @@ export function EcheancesFiscalesPage() {
     }
   }
 
+  async function ouvrirHistoriqueRelances(e: EcheanceFiscale) {
+    setEcheanceHistorique(e);
+    setChargementHistoriqueEcheance(true);
+    try {
+      const data = await relanceService.listerParEcheance(e.id);
+      setRelancesEcheance(data.filter((r) => r.statutEnvoi !== 'ECHEC'));
+    } catch (err) {
+      console.error('Erreur chargement historique relances echeance:', err);
+      setRelancesEcheance([]);
+    } finally {
+      setChargementHistoriqueEcheance(false);
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Colonnes du Tableau Défaillants (Épurées et Responsive)
   // -------------------------------------------------------------------------
@@ -324,6 +346,16 @@ export function EcheancesFiscalesPage() {
             title="Enregistrer la réception d'une déclaration"
           >
             <span>📝</span> Déclarer
+          </button>
+
+          {/* Historique des relances */}
+          <button
+            type="button"
+            onClick={() => void ouvrirHistoriqueRelances(e)}
+            className="rounded-lg border border-amber-200 bg-amber-50/70 p-1 text-amber-800 hover:bg-amber-100 transition-colors shadow-2xs font-semibold text-xs"
+            title="Consulter l'historique des relances pour ce dossier"
+          >
+            📜
           </button>
 
           {/* Documents PDF sous forme d'icônes avec tooltips */}
@@ -791,6 +823,14 @@ export function EcheancesFiscalesPage() {
                   <div className="flex gap-1">
                     <button
                       type="button"
+                      onClick={() => void ouvrirHistoriqueRelances(e)}
+                      className="rounded-lg border border-amber-200 bg-amber-50/70 p-1.5 text-xs text-amber-800 hover:bg-amber-100"
+                      title="Historique des relances"
+                    >
+                      📜
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => void telechargerPdf(e.id)}
                       className="rounded-lg border border-gray-200 p-1.5 text-xs text-gray-600 hover:text-fiscal-bordeaux"
                       title="Télécharger PDF"
@@ -1092,6 +1132,67 @@ export function EcheancesFiscalesPage() {
                 className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-mono focus:border-fiscal-bordeaux focus:outline-none"
               />
             </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ============================================================ */}
+      {/* Modal Historique des Relances pour Défaillant (Non-Dépôt)     */}
+      {/* ============================================================ */}
+      <Modal
+        ouverte={echeanceHistorique !== null}
+        titre="Historique des Relances de Déclaration"
+        sousTitre={`Suivi des avis de non-dépôt émis pour ${echeanceHistorique?.contribuableNom}`}
+        icone={<span>📜</span>}
+        taille="2xl"
+        onFermer={() => setEcheanceHistorique(null)}
+        pied={
+          <Button
+            variante="secondaire"
+            onClick={() => setEcheanceHistorique(null)}
+          >
+            Fermer
+          </Button>
+        }
+      >
+        {echeanceHistorique && (
+          <div className="space-y-4">
+            {/* Récapitulatif du dossier défaillant */}
+            <div className="rounded-xl border border-gray-200 bg-gray-50/90 p-4 text-xs space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-900 text-sm">{echeanceHistorique.contribuableNom}</span>
+                <span className="rounded-full bg-red-100 text-red-800 px-2 py-0.5 text-[10px] font-bold">
+                  +{echeanceHistorique.joursDeRetard} jours de dépassement
+                </span>
+              </div>
+              <div className="text-gray-600">
+                NIF : <span className="font-mono font-semibold">{echeanceHistorique.contribuableNif}</span> | Impôt :{' '}
+                <span className="font-semibold">{echeanceHistorique.impotLibelle} ({echeanceHistorique.impotCode})</span> | Période :{' '}
+                <span className="font-mono font-semibold">{echeanceHistorique.periode}</span>
+              </div>
+              <div className="text-[11px] text-gray-500">
+                Date limite légale dépassée : {formaterDateFr(echeanceHistorique.dateLimite)}
+              </div>
+            </div>
+
+            {/* En-tête statut */}
+            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                Chronologie des notifications de relance ({relancesEcheance.length} avis émis)
+              </h4>
+            </div>
+
+            {/* Timeline */}
+            {chargementHistoriqueEcheance ? (
+              <div className="py-8 text-center text-xs text-gray-400">
+                <span className="inline-block animate-spin text-xl mb-1">⏳</span>
+                <p>Chargement de la chronologie des relances...</p>
+              </div>
+            ) : (
+              <div className="max-h-[55vh] overflow-y-auto pr-1">
+                <RelanceTimeline relances={relancesEcheance} />
+              </div>
+            )}
           </div>
         )}
       </Modal>

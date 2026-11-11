@@ -84,4 +84,12 @@ public class RelanceController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
+
+    @GetMapping("/echeance/{echeanceFiscaleId}")
+    public ResponseEntity<List<RelanceResponseDTO>> listerParEcheance(@PathVariable Long echeanceFiscaleId) {
+        List<RelanceResponseDTO> dtos = relanceService.getHistoriqueParEcheance(echeanceFiscaleId).stream()
+                .map(relanceMapper::versDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
 }

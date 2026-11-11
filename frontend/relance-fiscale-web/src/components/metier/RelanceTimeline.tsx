@@ -35,7 +35,9 @@ const LIBELLE_NIVEAU: Record<string, { titre: string; badge: string; color: stri
 };
 
 export function RelanceTimeline({ relances }: { relances: Relance[] }) {
-  if (relances.length === 0) {
+  const relancesAffichees = relances.filter((r) => r.statutEnvoi !== 'ECHEC');
+
+  if (relancesAffichees.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/60 p-8 text-center">
         <span className="text-3xl block mb-2">📭</span>
@@ -49,7 +51,7 @@ export function RelanceTimeline({ relances }: { relances: Relance[] }) {
 
   return (
     <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-fiscal-bordeaux before:via-gray-300 before:to-gray-200">
-      {relances.map((relance, index) => {
+      {relancesAffichees.map((relance, index) => {
         const niveauInfo = LIBELLE_NIVEAU[relance.niveauRelance] || {
           titre: relance.niveauRelance,
           badge: 'Notification',

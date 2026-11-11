@@ -19,4 +19,10 @@ export const relanceService = {
     const { data } = await apiClient.get<Relance[]>(`/relances/dette/${detteFiscaleId}`);
     return data;
   },
+
+  /** Liste l'historique des relances envoyées pour une échéance fiscale (non-dépôt). */
+  async listerParEcheance(echeanceFiscaleId: number): Promise<Relance[]> {
+    const { data } = await apiClient.get<Relance[]>(`/relances/echeance/${echeanceFiscaleId}`);
+    return data;
+  },
 };

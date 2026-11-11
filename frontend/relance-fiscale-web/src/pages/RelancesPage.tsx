@@ -69,6 +69,12 @@ export function RelancesPage() {
 
   const { relances, chargement: chargementRelances, recharger } = useRelances(detteRecherchee);
 
+  // Filtrer les relances en échec pour ne conserver que les notifications acheminées ou planifiées
+  const relancesValides = useMemo(
+    () => relances.filter((r) => r.statutEnvoi !== 'ECHEC'),
+    [relances]
+  );
+
   const chargerDettes = useCallback(async () => {
     setChargementDonnees(true);
     setErreur(null);
@@ -737,7 +743,7 @@ export function RelancesPage() {
                   <span>📜</span> Historique des Relances pour ce Dossier
                 </h3>
                 <span className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full font-bold">
-                  {relances.length} expédition(s)
+                  {relancesValides.length} expédition(s)
                 </span>
               </div>
 
@@ -747,7 +753,7 @@ export function RelancesPage() {
                   <p>Chargement de la chronologie des avis...</p>
                 </div>
               ) : (
-                <RelanceTimeline relances={relances} />
+                <RelanceTimeline relances={relancesValides} />
               )}
             </div>
           )}
