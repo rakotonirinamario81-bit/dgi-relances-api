@@ -50,7 +50,7 @@ relance:
     url: ${FRONTEND_URL:}
 
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://192.168.*:*,http://10.*:*,http://172.*:*,http://*:5173}
+    allowed-origins: ${CORS_ORIGINS:https://dgi-relances-api.vercel.app,https://dgi-relances.vercel.app,http://localhost:5173,http://127.0.0.1:5173,http://192.168.*:*,http://10.*:*,http://172.*:*,http://*:5173}
 
   # Configuration de l'envoi de SMS (Brevo API)
   sms:
